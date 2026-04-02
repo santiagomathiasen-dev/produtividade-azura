@@ -5,123 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sistema de Gestão de Colaboradores</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js">
-function exportarBackupJSON() {
-  const data = {
-    colaboradores: colaboradores,
-    historico: historicoGlobal,
-    checklists_cfg: checklistsConfig,
-    export_date: new Date().toISOString()
-  };
-  const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `backup_gastrosense_rh_${new Date().toISOString().split('T')[0]}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  showToast('✓ Arquivo baixado! Você já pode salvar no Drive.', 'ok');
-}
-
-async function carregarNoticiasTST() {
-  const feedDiv = document.getElementById('tst-feed');
-  if(!feedDiv) return;
-  feedDiv.innerHTML = '<div style="padding:30px;text-align:center;color:var(--muted);">Conectando TST...</div>';
-  try {
-    const rssUrl = 'https://www.tst.jus.br/web/guest/noticias?p_p_id=com_liferay_asset_publisher_web_portlet_AssetPublisherPortlet_INSTANCE_1mFm&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&_com_liferay_asset_publisher_web_portlet_AssetPublisherPortlet_INSTANCE_1mFm_p_p_lifecycle=1&_com_liferay_asset_publisher_web_portlet_AssetPublisherPortlet_INSTANCE_1mFm_struts_action=%2Fasset_publisher%2Frss&_com_liferay_asset_publisher_web_portlet_AssetPublisherPortlet_INSTANCE_1mFm_type=journal';
-    const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
-    const res = await fetch(apiUrl);
-    const data = await res.json();
-    if(data.status === 'ok' && data.items.length > 0) {
-      let limit = data.items.length > 15 ? 15 : data.items.length;
-      feedDiv.innerHTML = data.items.slice(0, limit).map(item => `
-        <a href="${item.link}" target="_blank" style="text-decoration:none;color:inherit;display:block;padding:10px;border:1px solid var(--border);border-radius:var(--rs);transition:background 0.2s;">
-          <strong style="color:var(--text);font-size:13px;display:block;margin-bottom:4px;">${item.title}</strong>
-          <span style="font-size:11px;color:var(--muted);">${new Date(item.pubDate.replace(' ', 'T')).toLocaleDateString('pt-BR')}</span>
-        </a>
-      `).join('');
-    } else {
-      feedDiv.innerHTML = '<div style="padding:10px;text-align:center;">Não foi possível encontrar notícias. Tente novamente mais tarde.</div>';
-    }
-  } catch(e) {
-    feedDiv.innerHTML = '<div style="padding:10px;text-align:center;color:var(--red);">Erro de comunicação com o portal do TST judiciário.</div>';
-  }
-}
-setTimeout(carregarNoticiasTST, 1500); // Carrega na inicialização com delay sutil
-
-
-function popularCargosGlobais() {
-  const cargos = Object.keys(checklistsConfig);
-  const el = document.getElementById('selCheckCargo');
-  let sel = el.value || 'Chef de Cozinha';
-  el.innerHTML = cargos.map(c => `<option value="${c}">${c}</option>`).join('');
-  if (cargos.includes(sel)) el.value = sel;
-}
-window.promptCriarCargo = function() {
-  const nome = prompt("Digite o nome da nova função (ex: Bartender):");
-  if(!nome) return;
-  if(checklistsConfig[nome]) { showToast('Esse Cargo já existe no sistema.', 'warn'); return; }
-  checklistsConfig[nome] = JSON.parse(JSON.stringify(checklistsConfig['Outro']||{}));
-  salvarStorage();
-  popularCargosGlobais();
-  document.getElementById('selCheckCargo').value = nome;
-  renderChecklist();
-  showToast('Cargo Criadíssimo!', 'ok');
-}
-window.deletarCargoChecklist = function(nome) {
-  if(confirm("⚠ PERIGO! Tem certeza que deseja apagar os checklists configurados do cargo: " + nome + "?")) {
-    delete checklistsConfig[nome];
-    document.getElementById('selCheckCargo').value = 'Chef de Cozinha';
-    salvarStorage();
-    popularCargosGlobais();
-    renderChecklist();
-  }
-}
-
-
-// PWA Service Worker e Prompt de Instalação
-let deferredPrompt;
-const installBanner = document.getElementById('pwaInstallBanner');
-const installBtn = document.getElementById('pwaInstallBtn');
-const closeBtn = document.getElementById('pwaCloseBtn');
-
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('PWA Service Worker Registrado!', reg))
-      .catch(err => console.error('PWA SW Erro:', err));
-  });
-}
-
-window.addEventListener('beforeinstallprompt', (e) => {
-  // Previne o prompt automático do Chrome no Android
-  e.preventDefault();
-  // Guarda o evento para acionar manualmente
-  deferredPrompt = e;
-  // Mostra o Banner customizado
-  if(installBanner) installBanner.style.display = 'flex';
-});
-
-if(closeBtn) {
-  closeBtn.addEventListener('click', () => {
-    installBanner.style.display = 'none';
-  });
-}
-
-if(installBtn) {
-  installBtn.addEventListener('click', async () => {
-    installBanner.style.display = 'none';
-    if(deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      console.log('User installation choice:', outcome);
-      deferredPrompt = null;
-    }
-  });
-}
-
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <style>
@@ -577,13 +461,34 @@ i.ph { font-size: 1.15em; vertical-align: middle; margin-right: 4px; }
  <div class="tab-pane" id="tab-checklists">
  <div class="card mt">
  <div class="card-hd">
- <div class="card-title"> Checklists por Cargo</div>
- <div style="display:flex;gap:8px;align-items:center;">
- <select class="fsel" id="selCheckCargo" onchange="renderChecklist()"><option value="todos">Todos os cargos</option></select>
- <button class="btn-p" onclick="exportarPDFChecklist()"> PDF Checklist</button>
+ <div>
+ <div class="card-title">Checklists</div>
+ <div class="card-sub">Configure tarefas por função ou acompanhe por colaborador</div>
+ </div>
+ <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+ <div style="display:flex;background:var(--bg);border-radius:var(--rs);padding:3px;gap:3px;border:1px solid var(--border);">
+ <button id="btnModeConfig" class="btn-act" onclick="setChecklistMode('config')" style="background:var(--p);color:#fff;border-color:transparent;">⚙ Configurar</button>
+ <button id="btnModeColab" class="btn-act" onclick="setChecklistMode('colab')">👤 Por Colaborador</button>
+ </div>
+ <button class="btn-p" onclick="exportarPDFChecklist()">PDF Checklist</button>
  </div>
  </div>
- <div id="checklistContainer"></div>
+ <!-- MODO: CONFIGURAR -->
+ <div id="clConfigMode">
+ <div class="g2" style="margin-top:14px;align-items:start;">
+ <div id="clCargosList" style="border-right:1px solid var(--border);padding-right:16px;min-height:200px;"></div>
+ <div id="clCatsPanel" style="min-height:200px;"></div>
+ </div>
+ </div>
+ <!-- MODO: POR COLABORADOR -->
+ <div id="clColabMode" style="display:none;">
+ <div style="display:flex;gap:10px;align-items:center;margin:14px 0 0;">
+ <select class="fsel" id="selCheckColab" onchange="renderColabChecklist()" style="min-width:280px;">
+ <option value="">Selecione um colaborador...</option>
+ </select>
+ </div>
+ <div id="clColabContainer" style="margin-top:14px;"></div>
+ </div>
  </div>
  </div>
 
@@ -803,12 +708,14 @@ function salvarStorage(){
  localStorage.setItem('colab_v3', JSON.stringify(colaboradores));
  localStorage.setItem('hist_v3', JSON.stringify(historicoGlobal));
  localStorage.setItem('checks_cfg_v4', JSON.stringify(checklistsConfig));
+ localStorage.setItem('check_states_v1', JSON.stringify(checkStates));
 }
 function carregarStorage(){
  try{
  const c=localStorage.getItem('colab_v3');
  const h=localStorage.getItem('hist_v3');
  const ck=localStorage.getItem('checks_cfg_v4');
+ const cs=localStorage.getItem('check_states_v1');
  if(c){colaboradores=JSON.parse(c);nextId=Math.max(...colaboradores.map(x=>x.id))+1;}
  if(h)historicoGlobal=JSON.parse(h);
  if(ck){
@@ -816,6 +723,7 @@ function carregarStorage(){
  }else{
  checklistsConfig=JSON.parse(JSON.stringify(CHECKLISTS_DEFAULT));
  }
+ if(cs) checkStates=JSON.parse(cs);
  return !!c;
  }catch(e){return false;}
 }
@@ -1098,67 +1006,303 @@ function irParaAval(id){
 }
 
 // ═══════════════════════════════════════════════════════
-// CHECKLIST
+// CHECKLIST — SISTEMA COMPLETO
 // ═══════════════════════════════════════════════════════
-function renderChecklist(){
- popularCargosGlobais();
-  let sel=document.getElementById('selCheckCargo').value;
- if(sel==='todos') sel='Chef de Cozinha';
- const container=document.getElementById('checklistContainer');
- 
- if(!checklistsConfig[sel]){
- checklistsConfig[sel] = JSON.parse(JSON.stringify(checklistsConfig['Outro']||{}));
- }
- 
- 
-  let html=`<div style="margin-bottom:18px;font-size:14px;color:var(--text);border-bottom:1px solid var(--border);padding-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
-    <div>
-      <strong>Configurando Checklist de Avaliação para: <span style="color:var(--p);">${sel}</span></strong>
-      <p style="font-size:11px;color:var(--muted);margin-top:4px;">Adicione ou remova tarefas que serão avaliadas para este cargo.</p>
-    </div>
-    <div style="display:flex;gap:8px;align-items:center;">
-       ${(sel !== 'Outro' && sel !== 'Chef de Cozinha') ? `<button class="btn-act del" onclick="deletarCargoChecklist('${sel}')" title="Excluir"><i class="ph ph-trash"></i> Cargo</button>` : ''}
-       <button class="btn-sec" onclick="promptCriarCargo()" style="display:flex;align-items:center;gap:4px;"><i class="ph ph-plus"></i> Novo Cargo</button>
-    </div>
-  </div>`;
+let checklistMode='config';
+let selectedCheckCargo=null;
 
- 
- CRITERIOS.forEach(cr=>{
- const items = checklistsConfig[sel][cr.key]||[];
- html+=`<div class="cl-section" style="background:var(--bg);padding:14px;border-radius:var(--rs);margin-bottom:14px;">
- <div class="cl-cargo" style="background:none;padding:0;font-size:13px;color:var(--text);margin-bottom:10px;border:none;"> ${cr.label}</div>
- <div class="cl-grid" style="grid-template-columns:1fr;gap:6px;">
- ${items.map((item,i)=>`
- <div class="cl-item" style="padding:6px 10px;background:var(--card);">
- <span class="cl-txt" style="flex:1;">${item}</span>
- <button class="btn-act del" title="Remover" onclick="removerChecklistItem('${sel}','${cr.key}',${i})">Excluir</button>
- </div>`).join('')}
+function migrarChecklistsCats(){
+ Object.keys(checklistsConfig).forEach(cargo=>{
+ const cfg=checklistsConfig[cargo];
+ if(!cfg.__cats__){
+ cfg.__cats__=CRITERIOS.map(cr=>({key:cr.key,label:cr.label}));
+ }
+ });
+}
+
+function getCargoCategories(cargo){
+ const cfg=checklistsConfig[cargo];
+ if(!cfg) return CRITERIOS.map(cr=>({key:cr.key,label:cr.label}));
+ if(cfg.__cats__) return cfg.__cats__;
+ return CRITERIOS.map(cr=>({key:cr.key,label:cr.label}));
+}
+
+function renderChecklist(){
+ migrarChecklistsCats();
+ setChecklistMode(checklistMode||'config');
+}
+
+function setChecklistMode(mode){
+ checklistMode=mode;
+ const cfgEl=document.getElementById('clConfigMode');
+ const colEl=document.getElementById('clColabMode');
+ const btnCfg=document.getElementById('btnModeConfig');
+ const btnCol=document.getElementById('btnModeColab');
+ if(!cfgEl||!colEl) return;
+ cfgEl.style.display=mode==='config'?'block':'none';
+ colEl.style.display=mode==='colab'?'block':'none';
+ if(btnCfg&&btnCol){
+ if(mode==='config'){
+ btnCfg.style.cssText='background:var(--p);color:#fff;border-color:transparent;';
+ btnCol.style.cssText='';
+ }else{
+ btnCfg.style.cssText='';
+ btnCol.style.cssText='background:var(--p);color:#fff;border-color:transparent;';
+ }
+ }
+ if(mode==='config') renderChecklistConfig();
+ else renderColabChecklist();
+}
+
+function renderChecklistConfig(){
+ migrarChecklistsCats();
+ const cargos=Object.keys(checklistsConfig);
+ if(!selectedCheckCargo||!checklistsConfig[selectedCheckCargo]){
+ selectedCheckCargo=cargos[0]||null;
+ }
+ const listaEl=document.getElementById('clCargosList');
+ if(!listaEl) return;
+ const protegidos=['Chef de Cozinha','Outro'];
+ listaEl.innerHTML=`
+ <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:10px;">Funções / Cargos</div>
+ ${cargos.map(c=>{
+ const ativo=c===selectedCheckCargo;
+ const podeExcluir=!protegidos.includes(c);
+ return`<div onclick="selectCheckCargo('${c.replace(/'/g,"&#39;")}')" style="cursor:pointer;padding:9px 12px;border-radius:var(--rs);margin-bottom:5px;border:1px solid ${ativo?'var(--p)':'var(--border)'};background:${ativo?'var(--p-bg)':'transparent'};display:flex;justify-content:space-between;align-items:center;transition:all .2s;">
+ <span style="font-weight:600;font-size:13px;color:${ativo?'var(--p)':'var(--text)'};">${c}</span>
+ ${podeExcluir?`<button class="btn-act del" onclick="event.stopPropagation();deletarCargoChecklist('${c.replace(/'/g,"&#39;")}')"><i class="ph ph-trash"></i></button>`:''}
+ </div>`;
+ }).join('')}
+ <button class="btn-p" onclick="promptCriarCargo()" style="width:100%;margin-top:10px;justify-content:center;"><i class="ph ph-plus"></i> Nova Função</button>
+ `;
+ renderChecklistCatsPanel();
+}
+
+function selectCheckCargo(cargo){
+ selectedCheckCargo=cargo;
+ renderChecklistConfig();
+}
+
+function renderChecklistCatsPanel(){
+ const panel=document.getElementById('clCatsPanel');
+ if(!panel) return;
+ if(!selectedCheckCargo){
+ panel.innerHTML='<div style="color:var(--muted);text-align:center;padding:40px;">Selecione um cargo à esquerda.</div>';
+ return;
+ }
+ const cfg=checklistsConfig[selectedCheckCargo]||{};
+ const cats=getCargoCategories(selectedCheckCargo);
+ const cKeys=CRITERIOS.map(cr=>cr.key);
+ let html=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+ <div>
+ <div style="font-weight:700;font-size:14px;color:var(--text);">Cargo: <span style="color:var(--p);">${selectedCheckCargo}</span></div>
+ <div style="font-size:11px;color:var(--muted);margin-top:2px;">Gerencie categorias e itens do checklist.</div>
  </div>
- <div style="display:flex;gap:8px;margin-top:10px;">
- <input type="text" class="inp" id="novoCk_${cr.key}" placeholder="Nova tarefa exigida de ${cr.label}...">
- <button class="btn-p" onclick="addChecklistItem('${sel}','${cr.key}')">Adicionar</button>
+ <button class="btn-sec" onclick="promptAddCategoria('${selectedCheckCargo.replace(/'/g,"&#39;")}')" style="display:flex;align-items:center;gap:4px;"><i class="ph ph-plus"></i> Nova Categoria</button>
+ </div>`;
+ if(!cats.length){
+ html+='<div style="text-align:center;padding:30px;color:var(--muted);border:2px dashed var(--border);border-radius:var(--r);">Nenhuma categoria ainda. Clique em "Nova Categoria" para começar.</div>';
+ }
+ cats.forEach(cat=>{
+ const items=cfg[cat.key]||[];
+ const isDefault=cKeys.includes(cat.key);
+ html+=`<div style="background:var(--bg);border-radius:var(--rs);padding:12px 14px;margin-bottom:12px;">
+ <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+ <div style="font-weight:700;font-size:13px;color:var(--text);border-left:3px solid var(--p);padding-left:8px;">${cat.label}</div>
+ ${!isDefault?`<button class="btn-act del" onclick="deletarCategoria('${selectedCheckCargo.replace(/'/g,"&#39;")}','${cat.key}')"><i class="ph ph-trash"></i> Categoria</button>`:''}
+ </div>
+ <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:10px;">
+ ${items.length?items.map((item,i)=>`
+ <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:7px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+ <span style="font-size:12.5px;color:var(--text2);flex:1;">${item}</span>
+ <button class="btn-act del" onclick="removerChecklistItem('${selectedCheckCargo.replace(/'/g,"&#39;")}','${cat.key}',${i})"><i class="ph ph-x"></i></button>
+ </div>`).join(''):'<div style="font-size:12px;color:var(--muted);padding:4px 0;">Nenhum item. Adicione abaixo.</div>'}
+ </div>
+ <div style="display:flex;gap:8px;">
+ <input type="text" class="inp" id="novoCk_${cat.key}" placeholder="Novo item para ${cat.label}..." onkeydown="if(event.key===&#39;Enter&#39;)addChecklistItem('${selectedCheckCargo.replace(/'/g,"&#39;")}','${cat.key}')">
+ <button class="btn-p" onclick="addChecklistItem('${selectedCheckCargo.replace(/'/g,"&#39;")}','${cat.key}')"><i class="ph ph-plus"></i> Add</button>
  </div>
  </div>`;
  });
- container.innerHTML=html;
+ panel.innerHTML=html;
 }
 
-function addChecklistItem(cargo, key){
- const inp = document.getElementById(`novoCk_${key}`);
- const v = inp.value.trim();
- if(!v)return;
+function promptAddCategoria(cargo){
+ const nome=prompt('Nome da nova categoria (ex: Uniforme, Segurança):');
+ if(!nome||!nome.trim()) return;
+ migrarChecklistsCats();
+ const key='cat_'+Date.now();
+ if(!checklistsConfig[cargo].__cats__) checklistsConfig[cargo].__cats__=CRITERIOS.map(cr=>({key:cr.key,label:cr.label}));
+ checklistsConfig[cargo].__cats__.push({key,label:nome.trim()});
+ checklistsConfig[cargo][key]=[];
+ salvarStorage();
+ renderChecklistCatsPanel();
+ showToast('Categoria "'+nome.trim()+'" criada!','ok');
+}
+
+function deletarCategoria(cargo,key){
+ if(!confirm('Excluir esta categoria e todos os seus itens?')) return;
+ const cats=checklistsConfig[cargo].__cats__;
+ if(cats){const idx=cats.findIndex(c=>c.key===key);if(idx!==-1)cats.splice(idx,1);}
+ delete checklistsConfig[cargo][key];
+ salvarStorage();
+ renderChecklistCatsPanel();
+ showToast('Categoria excluída!','ok');
+}
+
+function promptCriarCargo(){
+ const nome=prompt('Nome da nova função (ex: Bartender, Pizzaiolo):');
+ if(!nome||!nome.trim()) return;
+ const n=nome.trim();
+ if(checklistsConfig[n]){showToast('Essa função já existe!','warn');return;}
+ checklistsConfig[n]=JSON.parse(JSON.stringify(checklistsConfig['Outro']||{}));
+ delete checklistsConfig[n].__cats__;
+ salvarStorage();
+ selectedCheckCargo=n;
+ migrarChecklistsCats();
+ renderChecklistConfig();
+ showToast('Função "'+n+'" criada!','ok');
+}
+
+function deletarCargoChecklist(nome){
+ if(!confirm('Tem certeza que deseja apagar todos os checklists da função: '+nome+'?')) return;
+ delete checklistsConfig[nome];
+ selectedCheckCargo=Object.keys(checklistsConfig)[0]||null;
+ salvarStorage();
+ renderChecklistConfig();
+ showToast('Função excluída!','ok');
+}
+
+function popularCargosGlobais(){
+ const cargos=Object.keys(checklistsConfig);
+ if(!selectedCheckCargo||!checklistsConfig[selectedCheckCargo]){
+ selectedCheckCargo=cargos[0]||null;
+ }
+}
+
+function addChecklistItem(cargo,key){
+ const inp=document.getElementById('novoCk_'+key);
+ const v=inp?inp.value.trim():'';
+ if(!v) return;
  if(!checklistsConfig[cargo][key]) checklistsConfig[cargo][key]=[];
  checklistsConfig[cargo][key].push(v);
- inp.value='';
+ if(inp) inp.value='';
  salvarStorage();
- renderChecklist();
+ renderChecklistCatsPanel();
  showToast('Item adicionado!','ok');
 }
 
-function removerChecklistItem(cargo, key, idx){
+function removerChecklistItem(cargo,key,idx){
+ if(checklistsConfig[cargo]&&checklistsConfig[cargo][key]){
  checklistsConfig[cargo][key].splice(idx,1);
  salvarStorage();
- renderChecklist();
+ renderChecklistCatsPanel();
+ }
+}
+
+// ═══════════════════════════════════════════════════════
+// CHECKLIST POR COLABORADOR
+// ═══════════════════════════════════════════════════════
+function renderColabChecklist(){
+ const sel=document.getElementById('selCheckColab');
+ if(!sel) return;
+ const currentVal=sel.value;
+ sel.innerHTML='<option value="">Selecione um colaborador...</option>'+
+ colaboradores.map(c=>`<option value="${c.id}">${c.nome} — ${c.cargo}</option>`).join('');
+ if(currentVal) sel.value=currentVal;
+ const id=+sel.value;
+ const container=document.getElementById('clColabContainer');
+ if(!container) return;
+ if(!id){
+ container.innerHTML='<div style="text-align:center;padding:50px;color:var(--muted);">Selecione um colaborador para ver e marcar o checklist.</div>';
+ return;
+ }
+ const colab=colaboradores.find(c=>c.id===id);
+ if(!colab){container.innerHTML='';return;}
+ migrarChecklistsCats();
+ const cfg=checklistsConfig[colab.cargo]||checklistsConfig['Outro']||{};
+ const cats=getCargoCategories(colab.cargo);
+ let total=0,done=0;
+ cats.forEach(cat=>{
+ const items=cfg[cat.key]||[];
+ items.forEach((_,i)=>{total++;if(checkStates[`${id}_${cat.key}_${i}`])done++;});
+ });
+ const pct=total>0?Math.round(done/total*100):0;
+ const cor=pct>=100?'var(--g)':pct>=50?'var(--p)':'var(--orange)';
+ let html=`<div style="background:var(--bg);border-radius:var(--r);padding:14px;margin-bottom:16px;">
+ <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+ <div>
+ <div style="font-weight:700;font-size:14px;color:var(--text);">${colab.nome}</div>
+ <div style="font-size:11px;color:var(--muted);">${colab.cargo} · ${colab.turno}</div>
+ </div>
+ <div style="text-align:right;">
+ <div style="font-size:24px;font-weight:900;color:${cor};">${pct}%</div>
+ <div style="font-size:11px;color:var(--muted);">${done} de ${total} itens</div>
+ </div>
+ </div>
+ <div class="cl-progress"><div class="cl-progress-bar" style="width:${pct}%;"></div></div>
+ <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end;">
+ <button class="btn-act" onclick="limparChecklistColab(${id})"><i class="ph ph-arrow-counter-clockwise"></i> Limpar Tudo</button>
+ <button class="btn-act" onclick="marcarTudoColab(${id})"><i class="ph ph-check-square"></i> Marcar Tudo</button>
+ </div>
+ </div>`;
+ let hasItems=false;
+ cats.forEach(cat=>{
+ const items=cfg[cat.key]||[];
+ if(!items.length) return;
+ hasItems=true;
+ let catDone=0;
+ items.forEach((_,i)=>{if(checkStates[`${id}_${cat.key}_${i}`])catDone++;});
+ html+=`<div class="cl-section">
+ <div class="cl-cargo" style="display:flex;align-items:center;justify-content:space-between;">
+ <span>${cat.label}</span>
+ <span style="font-size:11px;font-weight:600;color:${catDone===items.length&&items.length>0?'var(--g)':'var(--muted)'};">${catDone}/${items.length}</span>
+ </div>
+ <div class="cl-grid">
+ ${items.map((item,i)=>{
+ const stKey=`${id}_${cat.key}_${i}`;
+ const checked=!!checkStates[stKey];
+ return`<div class="cl-item${checked?' checked':''}">
+ <input type="checkbox"${checked?' checked':''} onchange="toggleCheckItem(${id},'${cat.key}',${i})">
+ <span class="cl-txt">${item}</span>
+ </div>`;
+ }).join('')}
+ </div>
+ </div>`;
+ });
+ if(!hasItems){
+ html+='<div style="text-align:center;padding:30px;color:var(--muted);border:2px dashed var(--border);border-radius:var(--r);">Nenhum item configurado para a função "'+colab.cargo+'". Vá em ⚙ Configurar para adicionar itens.</div>';
+ }
+ container.innerHTML=html;
+}
+
+function toggleCheckItem(colabId,catKey,itemIdx){
+ const key=`${colabId}_${catKey}_${itemIdx}`;
+ checkStates[key]=!checkStates[key];
+ localStorage.setItem('check_states_v1',JSON.stringify(checkStates));
+ renderColabChecklist();
+}
+
+function limparChecklistColab(colabId){
+ const keys=Object.keys(checkStates).filter(k=>k.startsWith(`${colabId}_`));
+ keys.forEach(k=>delete checkStates[k]);
+ localStorage.setItem('check_states_v1',JSON.stringify(checkStates));
+ renderColabChecklist();
+ showToast('Checklist limpo!','ok');
+}
+
+function marcarTudoColab(colabId){
+ const colab=colaboradores.find(c=>c.id===colabId);
+ if(!colab) return;
+ const cfg=checklistsConfig[colab.cargo]||checklistsConfig['Outro']||{};
+ const cats=getCargoCategories(colab.cargo);
+ cats.forEach(cat=>{
+ const items=cfg[cat.key]||[];
+ items.forEach((_,i)=>{checkStates[`${colabId}_${cat.key}_${i}`]=true;});
+ });
+ localStorage.setItem('check_states_v1',JSON.stringify(checkStates));
+ renderColabChecklist();
+ showToast('Tudo marcado!','ok');
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1697,33 +1841,42 @@ function exportarPDFUnico(c){
 
 // PDF CHECKLIST
 function exportarPDFChecklist(){
- showToast(' Gerando PDF de checklists...','ok');
+ showToast('Gerando PDF de checklists...','ok');
  setTimeout(()=>{
  try{
  const doc=getPdf();
- let y=pdfHeader(doc,'Checklists por Cargo');
- Object.entries(CHECKLISTS).forEach(([cargo,items])=>{
+ let y=pdfHeader(doc,'Checklists por Função/Cargo');
+ migrarChecklistsCats();
+ Object.keys(checklistsConfig).forEach(cargo=>{
+ const cfg=checklistsConfig[cargo]||{};
+ const cats=getCargoCategories(cargo);
+ let totalItems=0;
+ cats.forEach(cat=>{totalItems+=(cfg[cat.key]||[]).length;});
+ if(!totalItems) return;
  if(y>240){doc.addPage();y=20;}
- const ck=checkStates[cargo]||{};
- const done=items.filter((_,i)=>ck[i]).length;
- const pct=Math.round(done/items.length*100);
- doc.setFontSize(11);doc.setFont('helvetica','bold');doc.setTextColor(13,71,161);
- doc.text(' '+cargo+' ('+done+'/'+items.length+' — '+pct+'%)',14,y);y+=5;
+ doc.setFontSize(12);doc.setFont('helvetica','bold');doc.setTextColor(13,71,161);
+ doc.text(cargo+' ('+totalItems+' itens)',14,y);y+=7;
+ cats.forEach(cat=>{
+ const items=cfg[cat.key]||[];
+ if(!items.length) return;
+ if(y>245){doc.addPage();y=20;}
  doc.autoTable({
  startY:y,
- head:[['','Item do Checklist','Status']],
- body:items.map((item,i)=>['',item,ck[i]?' Concluído':'⬜ Pendente']),
- styles:{fontSize:8,cellPadding:2},
- headStyles:{fillColor:[13,71,161],textColor:255},
- columnStyles:{0:{cellWidth:6,halign:'center'},2:{cellWidth:22,halign:'center'}},
+ head:[[cat.label,'Item do Checklist']],
+ body:items.map(item=>['',item]),
+ styles:{fontSize:8,cellPadding:2.5},
+ headStyles:{fillColor:[90,107,123],textColor:255,fontSize:9,fontStyle:'bold'},
+ columnStyles:{0:{cellWidth:38,fontStyle:'bold'},1:{cellWidth:142}},
  alternateRowStyles:{fillColor:[240,244,248]},
  margin:{left:14,right:14},
  });
- y=doc.lastAutoTable.finalY+10;
+ y=doc.lastAutoTable.finalY+6;
+ });
+ y+=4;
  });
  pdfFooter(doc);
  doc.save('checklists-por-cargo.pdf');
- showToast(' PDF de checklists gerado!','ok');
+ showToast('PDF de checklists gerado!','ok');
  }catch(e){showToast('Erro: '+e.message,'err');}
  },300);
 }
@@ -1830,6 +1983,85 @@ function exportarPDFHistorico(){
 }
 
 // ═══════════════════════════════════════════════════════
+// BACKUP / EXPORT JSON
+// ═══════════════════════════════════════════════════════
+function exportarBackupJSON(){
+ const data={
+ colaboradores:colaboradores,
+ historico:historicoGlobal,
+ checklists_cfg:checklistsConfig,
+ check_states:checkStates,
+ export_date:new Date().toISOString()
+ };
+ const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement('a');
+ a.href=url;
+ a.download='backup_rh_'+new Date().toISOString().split('T')[0]+'.json';
+ document.body.appendChild(a);
+ a.click();
+ document.body.removeChild(a);
+ URL.revokeObjectURL(url);
+ showToast('Backup baixado com sucesso!','ok');
+}
+
+// ═══════════════════════════════════════════════════════
+// NOTICIAS TST
+// ═══════════════════════════════════════════════════════
+async function carregarNoticiasTST(){
+ const feedDiv=document.getElementById('tst-feed');
+ if(!feedDiv) return;
+ feedDiv.innerHTML='<div style="padding:30px;text-align:center;color:var(--muted);">Conectando ao TST...</div>';
+ try{
+ const rssUrl='https://www.tst.jus.br/web/guest/noticias?p_p_id=com_liferay_asset_publisher_web_portlet_AssetPublisherPortlet_INSTANCE_1mFm&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&_com_liferay_asset_publisher_web_portlet_AssetPublisherPortlet_INSTANCE_1mFm_p_p_lifecycle=1&_com_liferay_asset_publisher_web_portlet_AssetPublisherPortlet_INSTANCE_1mFm_struts_action=%2Fasset_publisher%2Frss&_com_liferay_asset_publisher_web_portlet_AssetPublisherPortlet_INSTANCE_1mFm_type=journal';
+ const apiUrl='https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(rssUrl);
+ const res=await fetch(apiUrl);
+ const data=await res.json();
+ if(data.status==='ok'&&data.items.length>0){
+ const limit=Math.min(data.items.length,15);
+ feedDiv.innerHTML=data.items.slice(0,limit).map(item=>`
+ <a href="${item.link}" target="_blank" style="text-decoration:none;color:inherit;display:block;padding:10px;border:1px solid var(--border);border-radius:var(--rs);transition:background 0.2s;">
+ <strong style="color:var(--text);font-size:13px;display:block;margin-bottom:4px;">${item.title}</strong>
+ <span style="font-size:11px;color:var(--muted);">${new Date(item.pubDate.replace(' ','T')).toLocaleDateString('pt-BR')}</span>
+ </a>`).join('');
+ }else{
+ feedDiv.innerHTML='<div style="padding:10px;text-align:center;">Não foi possível carregar as notícias.</div>';
+ }
+ }catch(e){
+ feedDiv.innerHTML='<div style="padding:10px;text-align:center;color:var(--red);">Erro ao conectar ao portal TST.</div>';
+ }
+}
+
+// ═══════════════════════════════════════════════════════
+// PWA — SERVICE WORKER + INSTALAÇÃO
+// ═══════════════════════════════════════════════════════
+function initPWA(){
+ if('serviceWorker' in navigator){
+ navigator.serviceWorker.register('./sw.js')
+ .then(reg=>console.log('PWA SW registrado!',reg))
+ .catch(err=>console.error('PWA SW erro:',err));
+ }
+ let deferredPrompt=null;
+ const installBanner=document.getElementById('pwaInstallBanner');
+ const installBtn=document.getElementById('pwaInstallBtn');
+ const closeBtn=document.getElementById('pwaCloseBtn');
+ window.addEventListener('beforeinstallprompt',(e)=>{
+ e.preventDefault();
+ deferredPrompt=e;
+ if(installBanner) installBanner.style.display='flex';
+ });
+ if(closeBtn) closeBtn.addEventListener('click',()=>{if(installBanner)installBanner.style.display='none';});
+ if(installBtn) installBtn.addEventListener('click',async()=>{
+ if(installBanner) installBanner.style.display='none';
+ if(deferredPrompt){
+ deferredPrompt.prompt();
+ await deferredPrompt.userChoice;
+ deferredPrompt=null;
+ }
+ });
+}
+
+// ═══════════════════════════════════════════════════════
 // TOAST
 // ═══════════════════════════════════════════════════════
 function showToast(msg, type='ok'){
@@ -1875,9 +2107,12 @@ function refreshAll(){
 // ═══════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded',()=>{
  initHeader();
+ initPWA();
  const loaded=carregarStorage();
  if(!loaded){colaboradores=JSON.parse(JSON.stringify(DADOS_PADRAO));salvarStorage();}
+ migrarChecklistsCats();
  refreshAll();
+ setTimeout(carregarNoticiasTST,1500);
  document.querySelectorAll('.overlay').forEach(o=>{
  o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');});
  });
