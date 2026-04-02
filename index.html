@@ -366,7 +366,8 @@ i.ph { font-size: 1.15em; vertical-align: middle; margin-right: 4px; }
  <button class="tab-btn" onclick="switchTab('matriz',this)"><i class="ph ph-target"></i> Matriz 9-Box</button>
  <button class="tab-btn" onclick="switchTab('recomendacoes',this)"><i class="ph ph-lightbulb"></i> Recomendações</button>
  <button class="tab-btn" onclick="switchTab('historico',this)"><i class="ph ph-clock-counter-clockwise"></i> Histórico</button>
-   <button class="tab-btn" onclick="switchTab('leis',document.querySelectorAll('.tab-btn')[4])"><i class="ph ph-scales"></i> Normas CLT</button>
+ <button class="tab-btn" onclick="switchTab('leis',this)"><i class="ph ph-scales"></i> Normas CLT</button>
+ <button class="tab-btn" onclick="switchTab('cadastro',this)"><i class="ph ph-identification-card"></i> Cadastro RH</button>
   </div>
 </div>
 
@@ -473,6 +474,17 @@ i.ph { font-size: 1.15em; vertical-align: middle; margin-right: 4px; }
  <button class="btn-p" onclick="exportarPDFChecklist()">PDF Checklist</button>
  </div>
  </div>
+ <!-- BARRA DE ALTERAÇÕES NÃO SALVAS -->
+ <div id="clSaveBar" style="display:none;background:var(--orange-bg);border:1px solid var(--orange);border-radius:var(--rs);padding:10px 14px;margin-bottom:12px;display:none;align-items:center;justify-content:space-between;gap:12px;">
+ <div style="display:flex;align-items:center;gap:8px;">
+ <i class="ph ph-warning" style="color:var(--orange);font-size:18px;"></i>
+ <span style="font-size:13px;font-weight:600;color:var(--orange);">Você tem alterações não salvas nos checklists.</span>
+ </div>
+ <div style="display:flex;gap:8px;">
+ <button class="btn-act" onclick="descartarAlteracoesChecklist()" style="color:var(--red);">Descartar</button>
+ <button class="btn-g" onclick="salvarChecklist()" style="padding:7px 18px;font-size:13px;"><i class="ph ph-floppy-disk"></i> Salvar Alterações</button>
+ </div>
+ </div>
  <!-- MODO: CONFIGURAR -->
  <div id="clConfigMode">
  <div class="g2" style="margin-top:14px;align-items:start;">
@@ -482,10 +494,11 @@ i.ph { font-size: 1.15em; vertical-align: middle; margin-right: 4px; }
  </div>
  <!-- MODO: POR COLABORADOR -->
  <div id="clColabMode" style="display:none;">
- <div style="display:flex;gap:10px;align-items:center;margin:14px 0 0;">
+ <div style="display:flex;gap:10px;align-items:center;margin:14px 0 0;flex-wrap:wrap;">
  <select class="fsel" id="selCheckColab" onchange="renderColabChecklist()" style="min-width:280px;">
  <option value="">Selecione um colaborador...</option>
  </select>
+ <span style="font-size:12px;color:var(--muted);">Os itens marcados são salvos automaticamente.</span>
  </div>
  <div id="clColabContainer" style="margin-top:14px;"></div>
  </div>
@@ -538,26 +551,140 @@ i.ph { font-size: 1.15em; vertical-align: middle; margin-right: 4px; }
 
   <!-- TAB: LEIS E CLT -->
   <div class="tab-pane" id="tab-leis">
-    <div class="g2 mt">
-      <div class="card">
-        <div class="card-hd"><div class="card-title"><i class="ph ph-book-open"></i> Resumo Trabalhista (CLT)</div></div>
-        <div style="font-size:12.5px;color:var(--text2);line-height:1.6;display:flex;flex-direction:column;gap:12px;max-height:450px;overflow-y:auto;padding-right:8px;">
-          <div><strong>⏱️ Jornada de Trabalho (Setor Hoteleiro/Restaurantes)</strong><br>A jornada padrão no Brasil é de 44 horas semanais e 8 horas diárias. Restaurantes costumam operar na escala 6x1 (uma folga semanal, obrigatoriamente um domingo a cada mês). A jornada 12x36 também é permitida mediante acordo coletivo.</div>
-          <div><strong>🍔 Intervalo Intrajornada</strong><br>Para jornadas maiores que 6 horas, é obrigatório intervalo mínimo de 1 hora para refeição e descanso. Não pode ser reduzido sem acordo prévio e oficial.</div>
-          <div><strong>⚠️ Adicional de Insalubridade</strong><br>Aplicável a funções específicas dependendo do laudo (PGR/PCMSO). Profissionais de limpeza (banheiros de alto fluxo) ou operadores de câmaras frias costumam receber grau médio (20%) ou máximo (40%) sob o salário mínimo.</div>
-          <div><strong>🌙 Adicional Noturno</strong><br>Trabalho executado entre 22h e 05h gera acréscimo de 20% na hora de trabalho, além do cômputo da hora noturna de 52 minutos e 30 segundos.</div>
-          <div><strong>💼 Rescisões e Demissões</strong><br>Em desligamentos sem justa causa: paga-se saldo de salários, férias vencidas/proporcionais (+1/3), 13º salário, aviso prévio, além de multa de 40% sobre o saldo total do FGTS.</div>
-          <div style="padding:10px;background:var(--p-bg);border-radius:var(--rs);color:var(--p);font-weight:600;font-size:11.5px;">Nota Legal: Este é apenas um guia de referência rápida. Consulte sua convenção coletiva (Sindbares, etc.) e sua contabilidade para a operação diária.</div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-hd"><div class="card-title"><i class="ph ph-rss"></i> Radar TST (Últimas Decisões)</div><button class="btn-act" onclick="carregarNoticiasTST()"><i class="ph ph-arrows-clockwise"></i> Att</button></div>
-        <div id="tst-feed" style="font-size:12.5px;color:var(--text2);line-height:1.5;max-height:450px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;">
-           <div style="padding:30px;text-align:center;color:var(--muted);">Carregando notícias oficiais em tempo real...</div>
-        </div>
-      </div>
+   <div class="card mt">
+    <div class="card-hd">
+     <div class="card-title"><i class="ph ph-book-open"></i> CLT Completa — Consolidação das Leis do Trabalho</div>
+     <div style="font-size:11px;color:var(--muted);">Decreto-Lei nº 5.452/1943 · Atualizado até 2025</div>
     </div>
+    <!-- BUSCADOR CLT -->
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
+     <div class="srch" style="flex:1;min-width:220px;">
+      <span class="srch-ic"><i class="ph ph-magnifying-glass"></i></span>
+      <input type="text" id="cltSearch" class="inp" placeholder="Buscar artigo, tema, palavra-chave... (ex: férias, horas extras, rescisão)" oninput="buscarCLT()" style="padding-left:34px;">
+     </div>
+     <select class="fsel" id="cltCapitulo" onchange="filtrarCapituloCLT()">
+      <option value="">Todos os Capítulos</option>
+      <option value="contrato">Contrato de Trabalho</option>
+      <option value="jornada">Jornada de Trabalho</option>
+      <option value="salario">Salário e Remuneração</option>
+      <option value="ferias">Férias Anuais</option>
+      <option value="rescisao">Rescisão do Contrato</option>
+      <option value="fgts">FGTS e Previdência</option>
+      <option value="seguranca">Segurança e Medicina</option>
+      <option value="especial">Trabalhadores Especiais</option>
+      <option value="penalidades">Penalidades e Fiscalização</option>
+     </select>
+     <button class="btn-act" onclick="limparBuscaCLT()"><i class="ph ph-x"></i> Limpar</button>
+    </div>
+    <div id="cltResultCount" style="font-size:12px;color:var(--muted);margin-bottom:10px;"></div>
+    <div id="cltContainer" style="max-height:680px;overflow-y:auto;padding-right:6px;"></div>
+   </div>
   </div>
+
+ <!-- TAB: CADASTRO RH -->
+ <div class="tab-pane" id="tab-cadastro">
+  <div class="g2 mt" style="align-items:start;">
+
+   <!-- COLUNA ESQUERDA: SELECIONAR COLABORADOR + DADOS -->
+   <div style="display:flex;flex-direction:column;gap:14px;">
+    <div class="card">
+     <div class="card-hd">
+      <div class="card-title"><i class="ph ph-user-circle"></i> Ficha do Colaborador</div>
+     </div>
+     <div style="margin-bottom:12px;">
+      <select class="fsel" id="selCadastroColab" onchange="renderCadastroColab()" style="width:100%;">
+       <option value="">Selecione um colaborador...</option>
+      </select>
+     </div>
+     <div id="cadastroColabInfo" style="font-size:13px;color:var(--muted);text-align:center;padding:20px 0;">Selecione um colaborador para ver a ficha.</div>
+    </div>
+
+    <!-- DOCUMENTOS DE ADMISSÃO -->
+    <div class="card">
+     <div class="card-hd">
+      <div class="card-title"><i class="ph ph-folder-open"></i> Documentos de Admissão</div>
+      <span id="admDocPct" class="badge b-m">0%</span>
+     </div>
+     <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Marque os documentos entregues pelo colaborador selecionado.</div>
+     <div id="admDocList" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+
+    <!-- DOCUMENTOS DE DESLIGAMENTO -->
+    <div class="card">
+     <div class="card-hd">
+      <div class="card-title"><i class="ph ph-folder-minus"></i> Documentos de Desligamento</div>
+      <span id="dsmDocPct" class="badge b-r">0%</span>
+     </div>
+     <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Checklist para rescisão de contrato — use apenas se houver desligamento.</div>
+     <div id="dsmDocList" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+   </div>
+
+   <!-- COLUNA DIREITA: REFERÊNCIA DE DOCUMENTOS + OBSERVAÇÕES -->
+   <div style="display:flex;flex-direction:column;gap:14px;">
+
+    <!-- LISTA DE DOCUMENTOS OBRIGATÓRIOS -->
+    <div class="card">
+     <div class="card-hd"><div class="card-title"><i class="ph ph-list-checks"></i> Documentos Obrigatórios por Lei</div></div>
+     <div style="font-size:12.5px;color:var(--text2);line-height:1.7;display:flex;flex-direction:column;gap:10px;">
+      <div style="background:var(--p-bg);border-radius:var(--rs);padding:10px 12px;border-left:3px solid var(--p);">
+       <div style="font-weight:700;font-size:13px;color:var(--p);margin-bottom:6px;">📋 Admissão — Documentos Pessoais</div>
+       <div style="font-size:12px;display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+        <span>• RG ou CNH (original + cópia)</span><span>• CPF (original + cópia)</span>
+        <span>• Carteira de Trabalho (CTPS)</span><span>• PIS/PASEP (se houver)</span>
+        <span>• Comprovante de residência</span><span>• Certidão de nascimento/casamento</span>
+        <span>• Título de eleitor</span><span>• Certificado de reservista (homens)</span>
+        <span>• Foto 3×4 recente</span><span>• Dados bancários (conta salário)</span>
+        <span>• Atestado de saúde ocupacional (ASO)</span><span>• Ficha de registro preenchida</span>
+       </div>
+      </div>
+      <div style="background:var(--g-bg);border-radius:var(--rs);padding:10px 12px;border-left:3px solid var(--g);">
+       <div style="font-weight:700;font-size:13px;color:var(--g2);margin-bottom:6px;">👶 Documentos Complementares (se aplicável)</div>
+       <div style="font-size:12px;display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+        <span>• Certidão de filhos menores de 14 anos</span><span>• Declaração de dependentes (IR)</span>
+        <span>• Cartão de vacinação (filhos)</span><span>• Declaração de escolaridade</span>
+        <span>• Comprovante de escolaridade</span><span>• Habilitação profissional (se exigida)</span>
+       </div>
+      </div>
+      <div style="background:var(--orange-bg);border-radius:var(--rs);padding:10px 12px;border-left:3px solid var(--orange);">
+       <div style="font-weight:700;font-size:13px;color:var(--orange);margin-bottom:6px;">🏥 Saúde e Segurança (Obrigatório CLT)</div>
+       <div style="font-size:12px;display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+        <span>• ASO — Admissional (PCMSO)</span><span>• PPRA/PGR assinado</span>
+        <span>• Treinamento NR-1 (geral)</span><span>• NR-6 (EPIs) se aplicável</span>
+        <span>• NR-17 (ergonomia) se aplicável</span><span>• NR-7 (PCMSO) assinado</span>
+       </div>
+      </div>
+      <div style="background:var(--red-bg);border-radius:var(--rs);padding:10px 12px;border-left:3px solid var(--red);">
+       <div style="font-weight:700;font-size:13px;color:var(--red);margin-bottom:6px;">📤 Desligamento — Documentos Rescisórios</div>
+       <div style="font-size:12px;display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+        <span>• TRCT assinado em 2 vias</span><span>• Aviso prévio (trabalhado/indenizado)</span>
+        <span>• Guia de saque do FGTS (CD/CF)</span><span>• Extrato do FGTS</span>
+        <span>• Comunicado de Dispensa (CD)</span><span>• Chave conectividade social</span>
+        <span>• Seguro-desemprego (sem justa causa)</span><span>• ASO Demissional</span>
+        <span>• Devolução da CTPS anotada</span><span>• Comprovante de pagamento rescisório</span>
+       </div>
+      </div>
+     </div>
+    </div>
+
+    <!-- CAMPO DE OBSERVAÇÕES POR COLABORADOR -->
+    <div class="card">
+     <div class="card-hd">
+      <div class="card-title"><i class="ph ph-note-pencil"></i> Observações de Cadastro</div>
+      <button class="btn-g" onclick="salvarObsCadastro()" style="font-size:12px;padding:6px 14px;"><i class="ph ph-floppy-disk"></i> Salvar Obs.</button>
+     </div>
+     <div id="obsColabLabel" style="font-size:12px;color:var(--muted);margin-bottom:8px;">Selecione um colaborador para registrar observações.</div>
+     <textarea id="obsCadastroArea" class="obs-area" rows="5" placeholder="Observações de RH, pendências de documentos, histórico de situações, etc." disabled></textarea>
+    </div>
+
+    <!-- ALERTAS DE PENDÊNCIAS -->
+    <div class="card">
+     <div class="card-hd"><div class="card-title"><i class="ph ph-warning-circle"></i> Pendências de Documentação</div></div>
+     <div id="pendenciasContainer" style="font-size:12.5px;color:var(--muted);text-align:center;padding:20px 0;">Selecione um colaborador para ver pendências.</div>
+    </div>
+   </div>
+  </div>
+ </div>
 
 </div><!-- /content -->
 
@@ -709,6 +836,8 @@ function salvarStorage(){
  localStorage.setItem('hist_v3', JSON.stringify(historicoGlobal));
  localStorage.setItem('checks_cfg_v4', JSON.stringify(checklistsConfig));
  localStorage.setItem('check_states_v1', JSON.stringify(checkStates));
+ localStorage.setItem('doc_states_v1', JSON.stringify(docStates));
+ localStorage.setItem('obs_cadastro_v1', JSON.stringify(obsColabCadastro));
 }
 function carregarStorage(){
  try{
@@ -716,6 +845,8 @@ function carregarStorage(){
  const h=localStorage.getItem('hist_v3');
  const ck=localStorage.getItem('checks_cfg_v4');
  const cs=localStorage.getItem('check_states_v1');
+ const ds=localStorage.getItem('doc_states_v1');
+ const oc=localStorage.getItem('obs_cadastro_v1');
  if(c){colaboradores=JSON.parse(c);nextId=Math.max(...colaboradores.map(x=>x.id))+1;}
  if(h)historicoGlobal=JSON.parse(h);
  if(ck){
@@ -724,6 +855,8 @@ function carregarStorage(){
  checklistsConfig=JSON.parse(JSON.stringify(CHECKLISTS_DEFAULT));
  }
  if(cs) checkStates=JSON.parse(cs);
+ if(ds) docStates=JSON.parse(ds);
+ if(oc) obsColabCadastro=JSON.parse(oc);
  return !!c;
  }catch(e){return false;}
 }
@@ -1010,6 +1143,38 @@ function irParaAval(id){
 // ═══════════════════════════════════════════════════════
 let checklistMode='config';
 let selectedCheckCargo=null;
+let checklistDirty=false;
+let checklistBackup=null;
+
+function marcarDirty(){
+ checklistDirty=true;
+ const bar=document.getElementById('clSaveBar');
+ if(bar) bar.style.display='flex';
+}
+
+function salvarChecklist(){
+ salvarStorage();
+ checklistDirty=false;
+ checklistBackup=null;
+ const bar=document.getElementById('clSaveBar');
+ if(bar) bar.style.display='none';
+ showToast('Checklists salvos com sucesso!','ok');
+}
+
+function descartarAlteracoesChecklist(){
+ if(!confirm('Descartar todas as alterações não salvas?')) return;
+ if(checklistBackup){
+ checklistsConfig=JSON.parse(checklistBackup);
+ }else{
+ checklistsConfig=JSON.parse(JSON.stringify(CHECKLISTS_DEFAULT));
+ }
+ checklistDirty=false;
+ checklistBackup=null;
+ const bar=document.getElementById('clSaveBar');
+ if(bar) bar.style.display='none';
+ renderChecklist();
+ showToast('Alterações descartadas.','warn');
+}
 
 function migrarChecklistsCats(){
  Object.keys(checklistsConfig).forEach(cargo=>{
@@ -1130,24 +1295,26 @@ function renderChecklistCatsPanel(){
 function promptAddCategoria(cargo){
  const nome=prompt('Nome da nova categoria (ex: Uniforme, Segurança):');
  if(!nome||!nome.trim()) return;
+ if(!checklistBackup) checklistBackup=JSON.stringify(checklistsConfig);
  migrarChecklistsCats();
  const key='cat_'+Date.now();
  if(!checklistsConfig[cargo].__cats__) checklistsConfig[cargo].__cats__=CRITERIOS.map(cr=>({key:cr.key,label:cr.label}));
  checklistsConfig[cargo].__cats__.push({key,label:nome.trim()});
  checklistsConfig[cargo][key]=[];
- salvarStorage();
+ marcarDirty();
  renderChecklistCatsPanel();
- showToast('Categoria "'+nome.trim()+'" criada!','ok');
+ showToast('Categoria "'+nome.trim()+'" criada! Salve para guardar.','ok');
 }
 
 function deletarCategoria(cargo,key){
  if(!confirm('Excluir esta categoria e todos os seus itens?')) return;
+ if(!checklistBackup) checklistBackup=JSON.stringify(checklistsConfig);
  const cats=checklistsConfig[cargo].__cats__;
  if(cats){const idx=cats.findIndex(c=>c.key===key);if(idx!==-1)cats.splice(idx,1);}
  delete checklistsConfig[cargo][key];
- salvarStorage();
+ marcarDirty();
  renderChecklistCatsPanel();
- showToast('Categoria excluída!','ok');
+ showToast('Categoria excluída! Salve para guardar.','ok');
 }
 
 function promptCriarCargo(){
@@ -1155,22 +1322,24 @@ function promptCriarCargo(){
  if(!nome||!nome.trim()) return;
  const n=nome.trim();
  if(checklistsConfig[n]){showToast('Essa função já existe!','warn');return;}
+ if(!checklistBackup) checklistBackup=JSON.stringify(checklistsConfig);
  checklistsConfig[n]=JSON.parse(JSON.stringify(checklistsConfig['Outro']||{}));
  delete checklistsConfig[n].__cats__;
- salvarStorage();
  selectedCheckCargo=n;
  migrarChecklistsCats();
+ marcarDirty();
  renderChecklistConfig();
- showToast('Função "'+n+'" criada!','ok');
+ showToast('Função "'+n+'" criada! Salve para guardar.','ok');
 }
 
 function deletarCargoChecklist(nome){
  if(!confirm('Tem certeza que deseja apagar todos os checklists da função: '+nome+'?')) return;
+ if(!checklistBackup) checklistBackup=JSON.stringify(checklistsConfig);
  delete checklistsConfig[nome];
  selectedCheckCargo=Object.keys(checklistsConfig)[0]||null;
- salvarStorage();
+ marcarDirty();
  renderChecklistConfig();
- showToast('Função excluída!','ok');
+ showToast('Função excluída! Salve para guardar.','ok');
 }
 
 function popularCargosGlobais(){
@@ -1184,18 +1353,20 @@ function addChecklistItem(cargo,key){
  const inp=document.getElementById('novoCk_'+key);
  const v=inp?inp.value.trim():'';
  if(!v) return;
+ if(!checklistBackup) checklistBackup=JSON.stringify(checklistsConfig);
  if(!checklistsConfig[cargo][key]) checklistsConfig[cargo][key]=[];
  checklistsConfig[cargo][key].push(v);
  if(inp) inp.value='';
- salvarStorage();
+ marcarDirty();
  renderChecklistCatsPanel();
- showToast('Item adicionado!','ok');
+ showToast('Item adicionado! Salve para guardar.','ok');
 }
 
 function removerChecklistItem(cargo,key,idx){
  if(checklistsConfig[cargo]&&checklistsConfig[cargo][key]){
+ if(!checklistBackup) checklistBackup=JSON.stringify(checklistsConfig);
  checklistsConfig[cargo][key].splice(idx,1);
- salvarStorage();
+ marcarDirty();
  renderChecklistCatsPanel();
  }
 }
@@ -1983,6 +2154,269 @@ function exportarPDFHistorico(){
 }
 
 // ═══════════════════════════════════════════════════════
+// CLT — DADOS COMPLETOS E BUSCADOR
+// ═══════════════════════════════════════════════════════
+const CLT_ARTIGOS=[
+ // CONTRATO DE TRABALHO
+ {cap:'contrato',num:'Art. 2°',titulo:'Definição de Empregador',texto:'Considera-se empregador a empresa, individual ou coletiva, que, assumindo os riscos da atividade econômica, admite, assalaria e dirige a prestação pessoal de serviços. Equiparam-se ao empregador os profissionais liberais, as instituições de beneficência, as associações recreativas ou outras instituições sem fins lucrativos, quando admitirem trabalhadores como empregados.'},
+ {cap:'contrato',num:'Art. 3°',titulo:'Definição de Empregado',texto:'Considera-se empregado toda pessoa física que prestar serviços de natureza não eventual a empregador, sob a dependência deste e mediante salário. Não haverá distinções relativas à espécie de emprego e à condição de trabalhador, nem entre o trabalho intelectual, técnico e manual.'},
+ {cap:'contrato',num:'Art. 29',titulo:'Carteira de Trabalho e Previdência Social',texto:'A Carteira de Trabalho e Previdência Social é obrigatória para o exercício de qualquer emprego, inclusive de natureza rural, ainda que em caráter temporário, e para o exercício por conta própria de atividade profissional remunerada. O empregador tem prazo de 5 dias úteis para anotar na CTPS a data de admissão, a remuneração e as condições especiais.'},
+ {cap:'contrato',num:'Art. 41',titulo:'Registro de Empregados',texto:'Em todas as atividades será obrigatório para o empregador o registro dos respectivos trabalhadores, podendo ser adotados livros, fichas ou sistema eletrônico, conforme instruções expedidas pelo Ministério do Trabalho. O registro deve conter: qualificação civil ou profissional, data de admissão, remuneração e forma de pagamento, localidade da prestação de serviços e outros dados.'},
+ {cap:'contrato',num:'Art. 443',titulo:'Modalidades de Contrato',texto:'O contrato individual de trabalho poderá ser acordado tácita ou expressamente, verbalmente ou por escrito, por prazo determinado ou indeterminado, ou para prestação de trabalho intermitente. O contrato por prazo determinado não poderá ser estipulado por mais de 2 anos, observada a regra do § 2°. O contrato de experiência não poderá exceder 90 dias.'},
+ {cap:'contrato',num:'Art. 452-A',titulo:'Contrato de Trabalho Intermitente',texto:'O contrato de trabalho intermitente deve ser celebrado por escrito e registrado na CTPS, ainda que previsto acordo coletivo de trabalho ou convenção coletiva, e conterá: identificação, assinatura e domicílio ou sede das partes; valor da hora de trabalho que não pode ser inferior ao salário mínimo ou ao piso salarial. O empregador convocará o empregado por qualquer meio de comunicação eficaz com antecedência mínima de 3 dias corridos.'},
+ {cap:'contrato',num:'Art. 457',titulo:'Composição do Salário',texto:'Compreendem-se na remuneração do empregado, para todos os efeitos legais, além do salário devido e pago diretamente pelo empregador, como contraprestação do serviço, as gorjetas que receber. Não integram o salário as seguintes parcelas: plano de saúde; seguro de vida; previdência privada; participação nos lucros e resultados; vale-transporte; vale-refeição/alimentação com caráter indenizatório.'},
+ // JORNADA DE TRABALHO
+ {cap:'jornada',num:'Art. 58',titulo:'Duração Normal do Trabalho',texto:'A duração normal do trabalho, para os empregados em qualquer atividade privada, não excederá 8 (oito) horas diárias, desde que não seja fixado expressamente outro limite. Os cartões de ponto são obrigatórios para estabelecimentos com mais de 20 funcionários. O tempo despendido desde a residência do empregado até o efetivo local de trabalho (deslocamento) não é computado na jornada de trabalho.'},
+ {cap:'jornada',num:'Art. 59',titulo:'Horas Extraordinárias',texto:'A duração diária do trabalho poderá ser acrescida de horas extras, em número não excedente de 2 (duas) horas, mediante acordo escrito entre empregador e empregado, ou mediante contrato coletivo de trabalho. As horas suplementares devem ser remuneradas com acréscimo de, pelo menos, 50% sobre o valor da hora normal (art. 7°, XVI, CF/88). Banco de horas pode ser compensado em até 6 meses (individual) ou 1 ano (coletivo).'},
+ {cap:'jornada',num:'Art. 60',titulo:'Jornada em Atividades Insalubres',texto:'Nas atividades insalubres, assim consideradas as constantes dos quadros mencionados na Portaria do Ministério do Trabalho, ou que neles venham a ser incluídas por ato do Ministro do Trabalho, quaisquer prorrogações só poderão ser acordadas mediante licença prévia das autoridades competentes em matéria de higiene do trabalho, e após a realização dos exames médicos necessários.'},
+ {cap:'jornada',num:'Art. 66',titulo:'Descanso entre Jornadas',texto:'Entre 2 jornadas de trabalho haverá um período mínimo de 11 horas consecutivas para descanso. O descanso semanal remunerado (DSR) deve ser concedido preferencialmente aos domingos.'},
+ {cap:'jornada',num:'Art. 71',titulo:'Intervalo Intrajornada',texto:'Em qualquer trabalho contínuo, cuja duração exceda 6 horas, é obrigatória a concessão de um intervalo para repouso ou alimentação, o qual será, no mínimo, de 1 hora e, salvo acordo escrito ou contrato coletivo em contrário, não poderá exceder 2 horas. Não excedendo 6 horas, será obrigatório um intervalo de 15 minutos quando a duração ultrapassar 4 horas. A supressão parcial ou total do intervalo importará multa ao empregador, além de pagar integralmente o período suprimido com acréscimo de 50%.'},
+ {cap:'jornada',num:'Art. 73',titulo:'Adicional Noturno',texto:'Salvo nos casos de revezamento semanal ou quinzenal, o trabalho noturno terá remuneração superior à do diurno com acréscimo de 20% sobre a hora diurna. Considera-se noturno o trabalho executado entre as 22 horas de um dia e as 5 horas do dia seguinte. A hora do período noturno será computada como 52 minutos e 30 segundos.'},
+ {cap:'jornada',num:'Art. 74',titulo:'Quadro de Horários e Controle',texto:'O horário do trabalho constará de quadro, organizado conforme modelo expedido pelo Ministro do Trabalho, e afixado em lugar bem visível. Esse quadro será discriminativo no caso de não ser o horário único para todos os empregados de uma mesma seção ou turma. Para os estabelecimentos com mais de 20 empregados, será obrigatória a anotação da hora de entrada e de saída, em registro manual, mecânico ou eletrônico, conforme instruções expedidas pelo Ministério do Trabalho.'},
+ // SALÁRIO E REMUNERAÇÃO
+ {cap:'salario',num:'Art. 460',titulo:'Equiparação Salarial',texto:'Na falta de estipulação do salário ou não havendo prova sobre a importância ajustada, o empregado terá direito a perceber salário igual ao daquele que, na mesma empresa, fizer serviço equivalente, ou ao salário mínimo, se este for mais favorável. Equiparação salarial: mesmo empregador, mesma função, mesmo estabelecimento, diferença de tempo na função não superior a 4 anos, e diferença salarial não superior a 2 anos entre o paradigma e o equiparando.'},
+ {cap:'salario',num:'Art. 467',titulo:'Pagamento em Audiência',texto:'Em caso de rescisão de contrato de trabalho, havendo controvérsia sobre o montante das verbas rescisórias, o empregador é obrigado a pagar ao trabalhador, à data do comparecimento à Justiça do Trabalho, a parte incontroversa dessas verbas, sob pena de pagá-las acrescidas de 50%.'},
+ {cap:'salario',num:'Art. 477',titulo:'Prazo para Pagamento Rescisório',texto:'Na extinção do contrato de trabalho, o empregador deverá proceder à anotação na Carteira de Trabalho e Previdência Social, comunicar a dispensa ao órgão competente e realizar o pagamento das verbas rescisórias no prazo de 10 dias corridos a partir do término do contrato. O pagamento deverá ser efetuado em dinheiro, depósito bancário ou cheque visado.'},
+ {cap:'salario',num:'Art. 482',titulo:'Justa Causa — Motivos',texto:'Constituem justa causa para rescisão do contrato de trabalho pelo empregador: a) ato de improbidade; b) incontinência de conduta ou mau procedimento; c) negociação habitual por conta própria sem permissão; d) condenação criminal; e) desídia no desempenho das funções; f) embriaguez habitual ou em serviço; g) violação de segredo da empresa; h) ato de indisciplina ou de insubordinação; i) abandono de emprego; j) ato lesivo da honra e boa fama; k) ofensa física; l) prática constante de jogos de azar; m) perda da habilitação necessária para exercício da profissão.'},
+ {cap:'salario',num:'Art. 483',titulo:'Rescisão Indireta',texto:'O empregado poderá considerar rescindido o contrato e pleitear a devida indenização quando: a) forem exigidos serviços superiores às suas forças; b) for tratado com rigor excessivo; c) correr perigo manifesto de mal considerável; d) o empregador não cumprir as obrigações contratuais; e) o empregador ou seus prepostos praticarem atos que ofendam a honra e a boa fama do empregado; f) o empregador ou seus prepostos ofenderem fisicamente o empregado; g) o empregador reduzir o trabalho, sendo este por peça ou tarefa, de forma a afetar sensivelmente a importância dos salários.'},
+ // FÉRIAS
+ {cap:'ferias',num:'Art. 129',titulo:'Direito a Férias',texto:'Todo empregado terá direito anualmente ao gozo de um período de férias, sem prejuízo da remuneração, após cada período de 12 meses de vigência do contrato de trabalho. O empregado terá direito a férias anuais remuneradas com, pelo menos, um terço a mais do que o salário normal, conforme art. 7°, XVII, CF/88.'},
+ {cap:'ferias',num:'Art. 130',titulo:'Duração das Férias',texto:'Após cada período de 12 meses de vigência do contrato de trabalho, o empregado terá direito a férias na seguinte proporção: 30 dias corridos quando não houver faltado ao serviço mais de 5 vezes; 24 dias corridos com 6 a 14 faltas; 18 dias corridos com 15 a 23 faltas; 12 dias corridos com 24 a 32 faltas. Mais de 32 faltas: perde o direito a férias no período.'},
+ {cap:'ferias',num:'Art. 134',titulo:'Concessão das Férias',texto:'As férias serão concedidas por ato do empregador, em um só período, nos 12 meses subsequentes à data em que o empregado tiver adquirido o direito. Em casos excepcionais, as férias poderão ser concedidas em até 3 períodos, sendo que um deles não poderá ser inferior a 14 dias corridos, e os demais não poderão ser inferiores a 5 dias corridos cada um. É vedado o início das férias no período de 2 dias que antecede feriado ou dia de repouso semanal remunerado.'},
+ {cap:'ferias',num:'Art. 135',titulo:'Aviso de Férias',texto:'A concessão das férias será participada, por escrito, ao empregado, com antecedência de, no mínimo, 30 dias. Dessa participação o interessado dará recibo.'},
+ {cap:'ferias',num:'Art. 142',titulo:'Remuneração de Férias',texto:'O empregado perceberá, durante as férias, a remuneração que lhe for devida na data de sua concessão. Na remuneração das férias deverão ser computados os adicionais (noturno, insalubridade, etc.), salário in natura (moradia, alimentação), gorjetas (inclusive as não constantes da CTPS) e as horas extras habitualmente prestadas. O pagamento da remuneração das férias e do respectivo adicional de 1/3 deverá ser efetuado até 2 dias antes do início do respectivo período.'},
+ {cap:'ferias',num:'Art. 143',titulo:'Abono Pecuniário (Venda de Férias)',texto:'É facultado ao empregado converter 1/3 do período de férias a que tiver direito em abono pecuniário, no valor da remuneração que lhe seria devida nos dias correspondentes. O abono de férias deverá ser requerido até 15 dias antes do término do período aquisitivo.'},
+ // RESCISÃO DO CONTRATO
+ {cap:'rescisao',num:'Art. 477-A',titulo:'Rescisão no Contrato a Prazo',texto:'As dispensas imotivadas individuais, plúrimas ou coletivas equiparam-se para todos os fins, não havendo necessidade de autorização prévia de entidade sindical ou de celebração de convenção coletiva ou acordo coletivo de trabalho para sua efetivação.'},
+ {cap:'rescisao',num:'Art. 484',titulo:'Culpa Recíproca',texto:'Havendo culpa recíproca no ato que determinou a rescisão do contrato de trabalho, o tribunal de trabalho reduzirá a indenização à que seria devida em caso de culpa exclusiva do empregador, por metade.'},
+ {cap:'rescisao',num:'Art. 487',titulo:'Aviso Prévio',texto:'Não havendo prazo estipulado, a parte que, sem justo motivo, quiser rescindir o contrato deverá avisar a outra de: 8 dias, se o pagamento for efetuado por semana ou tempo inferior; 30 dias aos que perceberem por quinzena ou mês, ou que tenham mais de 12 meses de serviço na empresa. O aviso prévio será de no mínimo 30 dias, acrescido de 3 dias por ano de serviço prestado ao mesmo empregador, até o máximo de 60 dias, perfazendo até 90 dias (Lei 12.506/2011).'},
+ {cap:'rescisao',num:'Art. 491',titulo:'Abandono de Emprego',texto:'O empregado que, durante o prazo do aviso prévio dado pelo empregador, praticar ato que justifique a rescisão imediata do contrato, sujeitar-se-á à perda do direito ao restante do respectivo prazo. Configura-se abandono de emprego após 30 dias consecutivos de ausência sem justificativa.'},
+ // FGTS E PREVIDÊNCIA
+ {cap:'fgts',num:'FGTS — Lei 8.036/90',titulo:'Fundo de Garantia do Tempo de Serviço',texto:'O FGTS é constituído pelo depósito mensal de 8% sobre a remuneração paga ao trabalhador (2% para aprendizes). Em caso de dispensa sem justa causa: multa de 40% sobre o saldo do FGTS + 10% ao governo (contribuição social). O trabalhador pode sacar o FGTS em: demissão sem justa causa; término do contrato por prazo determinado; rescisão por culpa recíproca; aposentadoria; falecimento; 3 anos de desemprego; doenças graves; compra de imóvel.'},
+ {cap:'fgts',num:'Seguro-Desemprego — Lei 7.998/90',titulo:'Benefício de Seguro-Desemprego',texto:'Tem direito ao seguro-desemprego o trabalhador dispensado sem justa causa que: tiver recebido salários de PJ nos últimos 6 meses; tiver sido empregado por PJ durante pelo menos 6, 9 ou 12 meses (conforme parcelas: 3, 4 ou 5 parcelas respectivamente); não possuir renda própria suficiente. Parcelas: 3 (6-11 meses), 4 (12-23 meses), 5 (24+ meses de trabalho formal).'},
+ {cap:'fgts',num:'13° Salário — Lei 4.090/62',titulo:'Gratificação Natalina',texto:'Todo empregado tem direito, anualmente, ao recebimento de uma gratificação (13° salário) no valor de 1/12 da remuneração devida em dezembro por mês trabalhado. O pagamento é feito em 2 parcelas: a 1ª entre fevereiro e novembro (50% do salário base); a 2ª até 20 de dezembro (valor complementar, descontando IR e INSS). Trabalhadores demitidos sem justa causa recebem o 13° salário proporcional.'},
+ {cap:'fgts',num:'INSS — Lei 8.212/91',titulo:'Contribuição Previdenciária',texto:'A contribuição do empregado para o INSS é obrigatória e calculada de forma progressiva sobre o salário: alíquota de 7,5% até 1 salário mínimo; 9% de 1 SM a R$ 2.666,68; 12% de R$ 2.666,69 a R$ 4.000,03; 14% de R$ 4.000,04 a R$ 7.786,02 (tabela 2025). O empregador recolhe mais 20% sobre a folha de pagamento (RAT + terceiros adicionais).'},
+ // SEGURANÇA E MEDICINA DO TRABALHO
+ {cap:'seguranca',num:'Art. 154 a 201',titulo:'Normas de Segurança e Medicina do Trabalho',texto:'A proteção da saúde do trabalhador é obrigação do empregador, que deve manter serviços de medicina e segurança do trabalho conforme NRs. As Normas Regulamentadoras (NRs) do MTE disciplinam condições e procedimentos obrigatórios de segurança. Principais NRs: NR-1 (PGRO), NR-5 (CIPA), NR-6 (EPIs), NR-7 (PCMSO), NR-9 (PGR), NR-17 (Ergonomia), NR-35 (Trabalho em Altura).'},
+ {cap:'seguranca',num:'Art. 192 — NR-15',titulo:'Adicional de Insalubridade',texto:'Serão classificadas as operações que exponham os empregados a agentes nocivos à saúde: grau máximo (40%), médio (20%) e mínimo (10%) sobre o salário mínimo. O adicional de insalubridade incide sobre o salário mínimo federal, salvo negociação coletiva mais benéfica. Cessa com eliminação do risco por fornecimento de EPI eficaz, aprovado pelo MTE.'},
+ {cap:'seguranca',num:'Art. 193 — NR-16',titulo:'Adicional de Periculosidade',texto:'São consideradas atividades ou operações perigosas, na forma da regulamentação aprovada pelo Ministério do Trabalho e Emprego, aquelas que, por sua natureza ou métodos de trabalho, impliquem risco acentuado em virtude de exposição permanente do trabalhador a: inflamáveis, explosivos, energia elétrica, roubos/violência física (segurança pessoal). O adicional de periculosidade é de 30% sobre o salário básico.'},
+ {cap:'seguranca',num:'PCMSO — NR-7',titulo:'Programa de Controle Médico de Saúde Ocupacional',texto:'Todo empregador é obrigado a elaborar e implementar o PCMSO, com objetivo de promoção e preservação da saúde dos trabalhadores. Exames obrigatórios: admissional (antes da admissão); periódico (anualmente ou conforme risco); retorno ao trabalho (após afastamento ≥30 dias); mudança de função; e demissional (até a data da homologação). O ASO (Atestado de Saúde Ocupacional) deve ser emitido em 2 vias.'},
+ // TRABALHADORES ESPECIAIS
+ {cap:'especial',num:'Arts. 372 a 401-B',titulo:'Trabalho da Mulher',texto:'À mulher aplica-se todos os direitos assegurados ao trabalhador. São vedadas distinções no critério de admissão, salário, função e demissão por motivo de sexo ou estado civil. A empregada gestante tem estabilidade desde a confirmação da gravidez até 5 meses após o parto (súmula 244 TST). A licença-maternidade é de 120 dias, podendo ser estendida para 180 dias por empresas participantes do Programa Empresa Cidadã. Durante a gestação são proibidas atividades insalubres, perigosas ou penosas.'},
+ {cap:'especial',num:'Arts. 402 a 441',titulo:'Trabalho do Menor (Aprendizagem)',texto:'Menor aprendiz: a partir dos 14 anos, em contrato de aprendizagem. Proibido trabalho noturno (das 22h às 5h), perigoso ou insalubre para menores de 18 anos. Remuneração: não inferior ao salário mínimo/hora, calculado com base na jornada de 40h semanais. O contrato de aprendizagem exige: matrícula e frequência em programa de aprendizagem; carga horária máxima de 8h diárias. A empresa que emprega mais de 7 empregados é obrigada a contratar aprendizes (2% a 5% dos trabalhadores).'},
+ {cap:'especial',num:'Art. 442-B',titulo:'Trabalhador Autônomo',texto:'A contratação do autônomo, ainda que de forma contínua, não estabelece vínculo de emprego entre as partes, desde que observado o disposto no art. 3°. O trabalhador autônomo pode prestar serviços a quaisquer contratantes sem prejuízo de ser qualificado como trabalhador independente. A empresa deve recolher o INSS patronal (20%) sobre os valores pagos ao autônomo contribuinte individual, e o prestador recolhe sua própria contribuição (11% sobre o valor recebido).'},
+ // PENALIDADES
+ {cap:'penalidades',num:'Art. 47',titulo:'Trabalho Sem Registro',texto:'O empregador que mantiver empregado não registrado incorrerá na multa de R$ 3.000,00 por empregado não registrado, acrescido de igual valor em cada reincidência. Além da multa, o empregador deverá efetuar o registro do trabalhador e pagar todas as verbas trabalhistas devidas.'},
+ {cap:'penalidades',num:'Art. 625-A a 625-H',titulo:'Comissões de Conciliação Prévia (CCP)',texto:'As empresas e os sindicatos podem instituir Comissões de Conciliação Prévia, de composição paritária, com representante dos empregados e dos empregadores, com a atribuição de tentar conciliar os conflitos individuais do trabalho.'},
+ {cap:'penalidades',num:'Lei 13.467/2017',titulo:'Reforma Trabalhista — Principais Mudanças',texto:'A Reforma Trabalhista (2017) alterou mais de 100 pontos da CLT. Principais mudanças: prevalência do negociado sobre o legislado (em pontos específicos); jornada 12x36 por acordo individual; banco de horas semestral por acordo individual; parcelamento das férias em até 3 períodos; contrato de trabalho intermitente; trabalho remoto (home office) regulamentado; rescisão por mútuo acordo (50% da multa do FGTS + 20 dias de aviso prévio); extinção da obrigatoriedade de homologação sindical; processo trabalhista com honorários advocatícios.'},
+];
+
+function renderCLT(){
+ buscarCLT();
+}
+
+function buscarCLT(){
+ const q=(document.getElementById('cltSearch').value||'').toLowerCase().trim();
+ const cap=document.getElementById('cltCapitulo').value;
+ let dados=CLT_ARTIGOS.filter(a=>{
+ const matchCap=!cap||a.cap===cap;
+ const matchQ=!q||(a.num.toLowerCase().includes(q)||a.titulo.toLowerCase().includes(q)||a.texto.toLowerCase().includes(q));
+ return matchCap&&matchQ;
+ });
+ const countEl=document.getElementById('cltResultCount');
+ if(countEl) countEl.textContent=dados.length+' artigo(s) encontrado(s)'+(!q&&!cap?' — use o buscador para filtrar':'');
+ const container=document.getElementById('cltContainer');
+ if(!container) return;
+ if(!dados.length){
+ container.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted);">Nenhum artigo encontrado. Tente outro termo.</div>';
+ return;
+ }
+ const capNomes={contrato:'Contrato de Trabalho',jornada:'Jornada de Trabalho',salario:'Salário e Remuneração',ferias:'Férias Anuais',rescisao:'Rescisão do Contrato',fgts:'FGTS e Previdência',seguranca:'Segurança e Medicina',especial:'Trabalhadores Especiais',penalidades:'Penalidades e Fiscalização'};
+ const capCores={contrato:'var(--p)',jornada:'#c07676',salario:'var(--g)',ferias:'#00838f',rescisao:'var(--red)',fgts:'#6a1b9a',seguranca:'var(--orange)',especial:'#37474f',penalidades:'#c62828'};
+ function hl(txt){
+ if(!q) return txt;
+ const re=new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
+ return txt.replace(re,'<mark style="background:#FFF176;border-radius:2px;padding:0 2px;">$1</mark>');
+ }
+ let html='';let lastCap='';
+ dados.forEach(a=>{
+ if(a.cap!==lastCap){
+ html+=`<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:${capCores[a.cap]||'var(--muted)'};margin:${lastCap?'20px':'0'} 0 8px;padding-bottom:4px;border-bottom:2px solid ${capCores[a.cap]||'var(--border)'};">${capNomes[a.cap]||a.cap}</div>`;
+ lastCap=a.cap;
+ }
+ html+=`<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;margin-bottom:8px;border-left:3px solid ${capCores[a.cap]||'var(--p)'};">
+ <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:6px;flex-wrap:wrap;">
+ <span style="font-weight:800;font-size:13px;color:${capCores[a.cap]||'var(--p)'};">${hl(a.num)}</span>
+ <span style="font-weight:600;font-size:13px;color:var(--text);">${hl(a.titulo)}</span>
+ </div>
+ <p style="font-size:12.5px;color:var(--text2);line-height:1.7;margin:0;">${hl(a.texto)}</p>
+ </div>`;
+ });
+ container.innerHTML=html;
+}
+
+function filtrarCapituloCLT(){
+ buscarCLT();
+}
+
+function limparBuscaCLT(){
+ document.getElementById('cltSearch').value='';
+ document.getElementById('cltCapitulo').value='';
+ buscarCLT();
+}
+
+// ═══════════════════════════════════════════════════════
+// CADASTRO RH — DOCUMENTOS E FICHA DO COLABORADOR
+// ═══════════════════════════════════════════════════════
+const DOCS_ADMISSAO=[
+ 'RG ou CNH (original + cópia)',
+ 'CPF (original + cópia)',
+ 'Carteira de Trabalho (CTPS)',
+ 'PIS/PASEP (se houver)',
+ 'Comprovante de residência (últimos 3 meses)',
+ 'Certidão de nascimento ou casamento',
+ 'Título de eleitor',
+ 'Certificado de reservista (homens)',
+ 'Foto 3×4 recente',
+ 'Dados bancários (conta para salário)',
+ 'ASO Admissional (Atestado de Saúde Ocupacional)',
+ 'Ficha de registro do empregado assinada',
+ 'Declaração de dependentes para IR',
+ 'Comprovante de escolaridade / habilitação profissional',
+];
+const DOCS_DESLIGAMENTO=[
+ 'TRCT — Termo de Rescisão do Contrato de Trabalho (2 vias)',
+ 'Aviso prévio trabalhado ou indenizado',
+ 'Guia de saque do FGTS (CD ou CF)',
+ 'Extrato do FGTS do período',
+ 'Comunicado de Dispensa (CD) para seguro-desemprego',
+ 'Requerimento do seguro-desemprego preenchido',
+ 'ASO Demissional',
+ 'Devolução da CTPS com anotações de saída',
+ 'Comprovante de pagamento de verbas rescisórias',
+ 'Recibo de entrega de documentos assinado pelo empregado',
+];
+
+let docStates={};
+let obsColabCadastro={};
+
+function renderCadastro(){
+ const sel=document.getElementById('selCadastroColab');
+ if(!sel) return;
+ sel.innerHTML='<option value="">Selecione um colaborador...</option>'+
+ colaboradores.map(c=>`<option value="${c.id}">${c.nome} — ${c.cargo}</option>`).join('');
+}
+
+function renderCadastroColab(){
+ const id=+document.getElementById('selCadastroColab').value;
+ const infoEl=document.getElementById('cadastroColabInfo');
+ const admEl=document.getElementById('admDocList');
+ const dsmEl=document.getElementById('dsmDocList');
+ const obsArea=document.getElementById('obsCadastroArea');
+ const obsLbl=document.getElementById('obsColabLabel');
+ if(!id){
+ if(infoEl) infoEl.innerHTML='<div style="color:var(--muted);text-align:center;padding:20px 0;">Selecione um colaborador para ver a ficha.</div>';
+ if(admEl) admEl.innerHTML='';
+ if(dsmEl) dsmEl.innerHTML='';
+ if(obsArea){obsArea.value='';obsArea.disabled=true;}
+ atualizarDocPct();
+ return;
+ }
+ const c=colaboradores.find(x=>x.id===id);
+ if(!c) return;
+ const s=calcScore(c.scores);
+ if(infoEl) infoEl.innerHTML=`
+ <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+ <div class="avatar" style="background:${CORES[c.cor]};width:48px;height:48px;font-size:16px;">${initials(c.nome)}</div>
+ <div style="flex:1;">
+ <div style="font-weight:700;font-size:15px;color:var(--text);">${c.nome}</div>
+ <div style="font-size:12px;color:var(--muted);">${c.cargo} · Turno ${c.turno}</div>
+ <div style="font-size:12px;color:var(--muted);">Admissão: ${fmt(c.dataAdm)} · ${tempoEmpresa(c.dataAdm)}</div>
+ </div>
+ <div style="text-align:right;">
+ <div style="font-size:22px;font-weight:900;color:${scoreCor(s)};">${s.toFixed(1)}</div>
+ <span class="badge ${getRec(s).cls}">${getRec(s).label}</span>
+ </div>
+ </div>
+ <div style="border-top:1px solid var(--border);padding-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;color:var(--text2);">
+ <div><strong>ID:</strong> #${c.id}</div>
+ <div><strong>Cor:</strong> ${CORES[c.cor]}</div>
+ </div>`;
+ // Docs admissão
+ if(admEl) admEl.innerHTML=DOCS_ADMISSAO.map((doc,i)=>{
+ const key=`adm_${id}_${i}`;
+ const ok=!!docStates[key];
+ return`<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:${ok?'var(--g-bg)':'var(--card)'};border:1px solid ${ok?'var(--g)':'var(--border)'};border-radius:var(--rs);transition:all .2s;">
+ <input type="checkbox" id="${key}"${ok?' checked':''} onchange="toggleDocState('${key}')" style="accent-color:var(--g);width:16px;height:16px;cursor:pointer;flex-shrink:0;">
+ <label for="${key}" style="font-size:12.5px;cursor:pointer;flex:1;color:${ok?'var(--g2)':'var(--text2)'};">${ok?'<s>':' '}${doc}${ok?'</s>':''}</label>
+ </div>`;
+ }).join('');
+ // Docs desligamento
+ if(dsmEl) dsmEl.innerHTML=DOCS_DESLIGAMENTO.map((doc,i)=>{
+ const key=`dsm_${id}_${i}`;
+ const ok=!!docStates[key];
+ return`<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:${ok?'var(--g-bg)':'var(--card)'};border:1px solid ${ok?'var(--g)':'var(--border)'};border-radius:var(--rs);transition:all .2s;">
+ <input type="checkbox" id="${key}"${ok?' checked':''} onchange="toggleDocState('${key}')" style="accent-color:var(--g);width:16px;height:16px;cursor:pointer;flex-shrink:0;">
+ <label for="${key}" style="font-size:12.5px;cursor:pointer;flex:1;color:${ok?'var(--g2)':'var(--text2)'};">${ok?'<s>':' '}${doc}${ok?'</s>':''}</label>
+ </div>`;
+ }).join('');
+ // Observações
+ if(obsArea){
+ obsArea.disabled=false;
+ obsArea.value=obsColabCadastro[id]||'';
+ }
+ if(obsLbl) obsLbl.textContent='Observações de RH para: '+c.nome;
+ atualizarDocPct();
+ renderPendencias(id);
+}
+
+function toggleDocState(key){
+ docStates[key]=!docStates[key];
+ localStorage.setItem('doc_states_v1',JSON.stringify(docStates));
+ const id=+document.getElementById('selCadastroColab').value;
+ if(id) renderPendencias(id);
+ atualizarDocPct();
+}
+
+function atualizarDocPct(){
+ const id=+( document.getElementById('selCadastroColab')||{}).value||0;
+ const admPct=document.getElementById('admDocPct');
+ const dsmPct=document.getElementById('dsmDocPct');
+ if(id){
+ const admDone=DOCS_ADMISSAO.filter((_,i)=>docStates[`adm_${id}_${i}`]).length;
+ const dsmDone=DOCS_DESLIGAMENTO.filter((_,i)=>docStates[`dsm_${id}_${i}`]).length;
+ if(admPct) admPct.textContent=Math.round(admDone/DOCS_ADMISSAO.length*100)+'%';
+ if(dsmPct) dsmPct.textContent=Math.round(dsmDone/DOCS_DESLIGAMENTO.length*100)+'%';
+ }else{
+ if(admPct) admPct.textContent='0%';
+ if(dsmPct) dsmPct.textContent='0%';
+ }
+}
+
+function renderPendencias(id){
+ const container=document.getElementById('pendenciasContainer');
+ if(!container) return;
+ const c=colaboradores.find(x=>x.id===id);
+ if(!c){container.innerHTML='<div style="color:var(--muted);text-align:center;padding:20px 0;">Selecione um colaborador.</div>';return;}
+ const pendentes=DOCS_ADMISSAO.filter((_,i)=>!docStates[`adm_${id}_${i}`]);
+ if(!pendentes.length){
+ container.innerHTML='<div style="color:var(--g);font-weight:700;text-align:center;padding:14px;background:var(--g-bg);border-radius:var(--rs);">✓ Toda a documentação de admissão está completa!</div>';
+ return;
+ }
+ container.innerHTML=`<div style="font-size:12.5px;font-weight:600;color:var(--red);margin-bottom:8px;">${c.nome.split(' ')[0]} tem ${pendentes.length} documento(s) pendente(s):</div>`+
+ pendentes.map(d=>`<div style="padding:5px 10px;background:var(--red-bg);border-left:3px solid var(--red);border-radius:var(--rs);font-size:12px;color:var(--text2);margin-bottom:4px;">• ${d}</div>`).join('');
+}
+
+function salvarObsCadastro(){
+ const id=+document.getElementById('selCadastroColab').value;
+ if(!id){showToast('Selecione um colaborador primeiro!','warn');return;}
+ const v=document.getElementById('obsCadastroArea').value;
+ obsColabCadastro[id]=v;
+ localStorage.setItem('obs_cadastro_v1',JSON.stringify(obsColabCadastro));
+ showToast('Observações salvas!','ok');
+}
+
+// ═══════════════════════════════════════════════════════
 // BACKUP / EXPORT JSON
 // ═══════════════════════════════════════════════════════
 function exportarBackupJSON(){
@@ -2083,6 +2517,8 @@ function switchTab(tabId, btn){
  if(btn)btn.classList.add('active');
  if(tabId==='dashboard')buildCharts();
  if(tabId==='checklists')renderChecklist();
+ if(tabId==='leis')renderCLT();
+ if(tabId==='cadastro')renderCadastro();
 }
 
 function closeOverlay(id){document.getElementById(id).classList.remove('open');}
@@ -2112,7 +2548,6 @@ document.addEventListener('DOMContentLoaded',()=>{
  if(!loaded){colaboradores=JSON.parse(JSON.stringify(DADOS_PADRAO));salvarStorage();}
  migrarChecklistsCats();
  refreshAll();
- setTimeout(carregarNoticiasTST,1500);
  document.querySelectorAll('.overlay').forEach(o=>{
  o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');});
  });
