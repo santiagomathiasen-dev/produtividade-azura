@@ -1,0 +1,1716 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de Gestão de Colaboradores</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<style>
+:root{
+ --p:#5A6B7B;--p2:#4A5F70;--p3:#788A9C;--p-bg:#F0F3F5;
+ --g:#738E71;--g2:#627C60;--g3:#8FB08C;--g-bg:#F2F6F1;
+ --bg:#F7F6F3;--card:#FFFFFF;--border:#DCD9D4;
+ --text:#2C3E50;--text2:#4A5568;--muted:#8A9AA8;
+ --red:#C07676;--red-bg:#FAF0F0;
+ --orange:#CFA374;--orange-bg:#FCF5EE;
+ --shadow:0 2px 8px rgba(90,107,123,.06);--shadow-lg:0 8px 24px rgba(90,107,123,.12);
+ --r:8px;--rs:6px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text2);min-height:100vh;}
+button{cursor:pointer;font-family:'Inter',sans-serif;}
+input,select,textarea{font-family:'Inter',sans-serif;}
+
+/* HEADER */
+header{background:var(--card);color:var(--text);border-bottom:1px solid var(--border);
+ padding:0 28px;display:flex;align-items:center;justify-content:space-between;
+ height:64px;box-shadow:var(--shadow);position:sticky;top:0;z-index:200;}
+.h-left{display:flex;align-items:center;gap:12px;}
+.logo{width:38px;height:38px;background:var(--p-bg);color:var(--p);border-radius:var(--r);
+ display:flex;align-items:center;justify-content:center;font-size:20px;border:1px solid var(--border);}
+.h-title h1{font-size:16px;font-weight:700;letter-spacing:-.3px;color:var(--text);}
+.h-title p{font-size:11px;color:var(--muted);margin-top:1px;}
+.h-right{display:flex;align-items:center;gap:12px;}
+.h-date{font-size:11px;color:var(--muted);font-weight:600;}
+.btn-pdf{background:var(--g);color:#fff;border:none;padding:8px 16px;border-radius:var(--rs);
+ font-weight:600;font-size:12px;display:flex;align-items:center;gap:6px;transition:all .2s;}
+.btn-pdf:hover{background:var(--g2);transform:translateY(-1px);}
+.btn-reset{background:var(--bg);color:var(--text2);border:1px solid var(--border);
+ padding:7px 12px;border-radius:var(--rs);font-size:11px;font-weight:600;transition:all .2s;}
+.btn-reset:hover{background:var(--border);color:var(--text);}
+
+/* TABS */
+.tabs-wrap{padding:14px 28px 0;background:#fff;border-bottom:1px solid var(--border);
+ position:sticky;top:64px;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.tabs{display:flex;gap:0;overflow-x:auto;}
+.tab-btn{padding:10px 18px;border:none;background:transparent;
+ font-size:13px;font-weight:600;color:var(--muted);
+ border-bottom:3px solid transparent;transition:all .2s;
+ display:flex;align-items:center;gap:6px;white-space:nowrap;}
+.tab-btn.active{color:var(--p);border-bottom-color:var(--p);}
+.tab-btn:hover:not(.active){color:var(--text2);background:var(--bg);}
+
+/* KPIs */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:20px 28px 0;}
+.kpi{background:var(--card);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow);
+ border-left:4px solid var(--p);display:flex;align-items:center;gap:12px;transition:transform .2s;}
+.kpi:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+.kpi.g{border-left-color:var(--g);}
+.kpi.o{border-left-color:var(--orange);}
+.kpi.r{border-left-color:var(--red);}
+.kpi-ico{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;
+ justify-content:center;font-size:20px;flex-shrink:0;}
+.ic-b{background:var(--p-bg);} .ic-g{background:var(--g-bg);}
+.ic-o{background:var(--orange-bg);} .ic-r{background:var(--red-bg);}
+.kpi-val{font-size:26px;font-weight:900;line-height:1;color:var(--text);}
+.kpi-lbl{font-size:11px;color:var(--muted);margin-top:2px;}
+.kpi-sub{font-size:10px;font-weight:700;margin-top:4px;}
+.up{color:var(--g);}.down{color:var(--red);}.warn{color:var(--orange);}
+
+/* CONTENT */
+.content{padding:18px 28px 60px;}
+.tab-pane{display:none;}.tab-pane.active{display:block;}
+
+/* GRID */
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.g21{display:grid;grid-template-columns:2fr 1fr;gap:14px;}
+.mt{margin-top:14px;}
+
+/* CARD */
+.card{background:var(--card);border-radius:var(--r);padding:18px;box-shadow:var(--shadow);border:1px solid var(--border);}
+.card-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.card-title{font-size:14px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:7px;}
+.card-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{background:var(--p-bg);color:var(--p2);
+ padding:11px 12px;text-align:left;font-weight:600;font-size:12px;
+ border-bottom:1px solid var(--border);}
+thead th:first-child{border-radius:var(--rs) 0 0 0;}
+thead th:last-child{border-radius:0 var(--rs) 0 0;}
+tbody tr{border-bottom:1px solid var(--border);transition:background .15s;}
+tbody tr:hover{background:#F3F8FF;}
+tbody td{padding:10px 12px;vertical-align:middle;}
+.avatar{width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;
+ justify-content:center;font-weight:700;font-size:11px;color:#fff;flex-shrink:0;}
+.emp-row{display:flex;align-items:center;gap:9px;}
+.emp-nm{font-weight:600;font-size:13px;color:var(--text);}
+.emp-cg{font-size:11px;color:var(--muted);}
+
+/* BADGES */
+.badge{padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;}
+.b-p{background:var(--g-bg);color:var(--g);}
+.b-m{background:var(--p-bg);color:var(--p);}
+.b-t{background:var(--orange-bg);color:var(--orange);}
+.b-r{background:var(--red-bg);color:var(--red);}
+
+/* SCORE BAR */
+.sc-cell{display:flex;align-items:center;gap:7px;}
+.sc-bar-w{flex:1;height:5px;background:#E3EAF0;border-radius:3px;min-width:50px;}
+.sc-bar{height:5px;border-radius:3px;}
+.sc-num{font-weight:700;font-size:12px;min-width:28px;text-align:right;color:var(--text);}
+
+/* FILTERS */
+.filters{display:flex;gap:10px;margin-bottom:14px;align-items:center;flex-wrap:wrap;}
+.srch{position:relative;flex:1;min-width:180px;}
+.srch input{width:100%;padding:8px 12px 8px 34px;border:1px solid var(--border);
+ border-radius:var(--rs);font-size:13px;outline:none;transition:border .2s;}
+.srch input:focus{border-color:var(--p);}
+.srch-ic{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);}
+select.fsel{padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);
+ font-size:12.5px;outline:none;min-width:130px;}
+select.fsel:focus{border-color:var(--p);}
+
+/* BUTTONS */
+.btn-p{background:var(--p);color:#fff;border:none;padding:9px 18px;border-radius:var(--rs);
+ font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:6px;transition:all .2s;}
+.btn-p:hover{background:var(--p2);transform:translateY(-1px);}
+.btn-p:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.btn-g{background:var(--g);color:#fff;border:none;padding:9px 18px;border-radius:var(--rs);
+ font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:6px;transition:all .2s;}
+.btn-g:hover{background:var(--g2);transform:translateY(-1px);}
+.btn-sec{background:transparent;color:var(--p);border:2px solid var(--p);
+ padding:8px 16px;border-radius:var(--rs);font-weight:600;font-size:12.5px;transition:all .2s;}
+.btn-sec:hover{background:var(--p);color:#fff;}
+.btn-act{background:none;border:1px solid var(--border);padding:5px 9px;
+ border-radius:6px;font-size:11px;font-weight:600;color:var(--muted);
+ transition:all .2s;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;}
+.btn-act:hover{border-color:var(--p);color:var(--p);}
+.btn-act.del:hover{border-color:var(--red);color:var(--red);background:var(--red-bg);}
+.btn-act.pdf-emp:hover{border-color:var(--g);color:var(--g);background:var(--g-bg);}
+
+/* FORM */
+.form-group{margin-bottom:16px;}
+.form-lbl{font-size:13px;font-weight:600;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;color:var(--text);}
+.sc-disp{font-size:24px;font-weight:900;color:var(--p);}
+.crit-desc{font-size:11px;color:var(--muted);margin-top:2px;margin-bottom:8px;}
+input[type=range]{width:100%;height:6px;-webkit-appearance:none;appearance:none;
+ background:linear-gradient(to right,var(--p) 0%,var(--p) var(--val),#CFD8DC var(--val),#CFD8DC 100%);
+ border-radius:3px;outline:none;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;
+ background:var(--p);box-shadow:0 2px 6px rgba(21,101,192,.4);border:2px solid #fff;cursor:pointer;}
+.sl-lbls{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:2px;}
+.obs-area{width:100%;padding:10px;border:1px solid var(--border);border-radius:var(--rs);
+ font-size:12.5px;resize:vertical;min-height:70px;outline:none;color:var(--text2);}
+.obs-area:focus{border-color:var(--p);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.inp{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--rs);
+ font-size:13px;outline:none;color:var(--text2);}
+.inp:focus{border-color:var(--p);}
+
+/* 9BOX */
+.matrix-9box{display:grid;grid-template-columns:32px repeat(3,1fr);grid-template-rows:repeat(3,110px) 32px;gap:3px;}
+.m-cell{border-radius:var(--rs);padding:7px;position:relative;overflow:hidden;}
+.m-lbl-y{display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--muted);
+ font-weight:700;writing-mode:vertical-lr;transform:rotate(180deg);text-transform:uppercase;letter-spacing:.5px;}
+.m-lbl-x{display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--muted);
+ font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+.m-title{font-size:8px;font-weight:700;position:absolute;top:5px;left:7px;
+ text-transform:uppercase;letter-spacing:.3px;opacity:.7;}
+.m-dots{display:flex;flex-wrap:wrap;gap:3px;padding-top:18px;align-content:flex-start;}
+.m-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+ font-size:9px;font-weight:700;color:#fff;cursor:pointer;border:2px solid rgba(255,255,255,.6);
+ position:relative;transition:transform .2s;flex-shrink:0;}
+.m-dot:hover{transform:scale(1.2);z-index:10;}
+.m-tip{display:none;position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);
+ background:rgba(0,0,0,.85);color:#fff;padding:4px 8px;border-radius:5px;font-size:9.5px;
+ white-space:nowrap;z-index:30;pointer-events:none;}
+.m-dot:hover .m-tip{display:block;}
+.m-c1{background:#C8E6C9;} .m-c2{background:#A5D6A7;} .m-c3{background:#66BB6A;}
+.m-c4{background:#BBDEFB;} .m-c5{background:#90CAF9;} .m-c6{background:#42A5F5;}
+.m-c7{background:#FFECB3;} .m-c8{background:#FFD54F;} .m-c9{background:#FFA726;}
+
+/* CHECKLIST */
+.cl-section{margin-bottom:20px;}
+.cl-cargo{font-size:14px;font-weight:800;color:var(--text);margin-bottom:10px;
+ padding:10px 14px;background:linear-gradient(135deg,var(--p-bg),#fff);
+ border-radius:var(--rs);border-left:4px solid var(--p);display:flex;align-items:center;gap:8px;}
+.cl-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.cl-item{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);
+ padding:10px 12px;display:flex;align-items:flex-start;gap:10px;transition:all .2s;}
+.cl-item:hover{border-color:var(--p3);box-shadow:var(--shadow);}
+.cl-item input[type=checkbox]{margin-top:2px;width:16px;height:16px;cursor:pointer;
+ accent-color:var(--p);flex-shrink:0;}
+.cl-txt{font-size:12.5px;color:var(--text2);line-height:1.5;}
+.cl-item.checked .cl-txt{text-decoration:line-through;color:var(--muted);}
+.cl-progress{height:8px;background:#E3EAF0;border-radius:4px;overflow:hidden;margin-bottom:14px;}
+.cl-progress-bar{height:100%;background:linear-gradient(90deg,var(--g),var(--g3));border-radius:4px;transition:width .4s;}
+.cl-pct{font-size:11px;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between;}
+
+/* REC */
+.rec-sec{margin-bottom:20px;}
+.rec-hd{padding:10px 14px;border-radius:var(--rs) var(--rs) 0 0;font-size:13px;font-weight:700;
+ display:flex;align-items:center;color:#fff;}
+.rec-hd.promover{background:var(--g);}
+.rec-hd.manter{background:var(--p);}
+.rec-hd.treinar{background:var(--orange);}
+.rec-hd.risco{background:var(--red);}
+.rec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
+ background:var(--border);padding:1px;border-radius:0 0 var(--rs) var(--rs);}
+.rec-card{background:var(--card);padding:14px;position:relative;}
+.rec-card:last-child{border-radius:0 0 var(--rs) 0;}
+.rec-emp-hd{display:flex;align-items:center;gap:9px;margin-bottom:10px;}
+.rec-acts{margin-top:10px;font-size:11.5px;}
+.rec-acts-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:5px;}
+.rec-act-item{padding:4px 0;border-bottom:1px solid var(--bg);color:var(--text2);line-height:1.5;}
+.rec-act-item:last-child{border-bottom:none;}
+
+/* HISTORICO */
+.hist-entry{background:var(--card);border-radius:var(--rs);padding:12px 14px;margin-bottom:8px;
+ border-left:3px solid var(--p);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:space-between;}
+.hist-info{flex:1;}
+.hist-emp{font-weight:700;font-size:13px;color:var(--text);}
+.hist-det{font-size:11px;color:var(--muted);margin-top:2px;}
+.hist-score{font-size:22px;font-weight:900;}
+
+/* MODAL / OVERLAY */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;
+ align-items:center;justify-content:center;padding:20px;}
+.overlay.open{display:flex;}
+.modal{background:var(--card);border-radius:var(--r);width:100%;max-width:560px;
+ max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.modal-hd{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-title{font-size:16px;font-weight:800;color:var(--text);}
+.modal-close{background:none;border:none;font-size:22px;color:var(--muted);cursor:pointer;line-height:1;}
+.modal-close:hover{color:var(--red);}
+.modal-body{padding:20px;}
+.modal-ft{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;}
+
+/* DETAIL GRID */
+.det-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.det-item{background:var(--bg);border-radius:var(--rs);padding:10px 12px;}
+.det-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);}
+.det-val{font-size:14px;font-weight:700;color:var(--text);margin-top:2px;}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;z-index:1000;pointer-events:none;}
+.toast-msg{background:#263238;color:#fff;padding:12px 20px;border-radius:var(--rs);
+ font-size:13px;font-weight:600;margin-top:8px;box-shadow:0 4px 20px rgba(0,0,0,.3);
+ display:flex;align-items:center;gap:8px;animation:slideIn .3s ease;max-width:340px;}
+.toast-msg.ok{border-left:4px solid var(--g);}
+.toast-msg.warn{border-left:4px solid var(--orange);}
+.toast-msg.err{border-left:4px solid var(--red);}
+@keyframes slideIn{from{transform:translateX(60px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+
+/* TOP-BOT */
+.top-bot{display:flex;flex-direction:column;gap:6px;}
+.tb-row{display:flex;align-items:center;gap:10px;padding:7px 10px;background:var(--bg);border-radius:var(--rs);}
+.tb-pos{font-size:12px;font-weight:800;color:var(--muted);min-width:20px;}
+.tb-nm{font-size:12.5px;font-weight:600;color:var(--text);flex:1;}
+.tb-sc{font-size:14px;font-weight:900;}
+
+/* CONFIRM */
+.confirm-box{background:var(--card);border-radius:var(--r);padding:28px;text-align:center;
+ max-width:400px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.confirm-ico{font-size:42px;margin-bottom:12px;}
+.confirm-title{font-size:18px;font-weight:800;color:var(--text);margin-bottom:8px;}
+.confirm-msg{font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6;}
+.confirm-btns{display:flex;gap:10px;justify-content:center;}
+
+/* AVALIAÇÃO select */
+.aval-sel-wrap{background:var(--p-bg);border-radius:var(--r);padding:14px;margin-bottom:18px;
+ display:flex;align-items:center;gap:12px;}
+.aval-sel-wrap label{font-weight:700;font-size:13px;color:var(--text);white-space:nowrap;}
+
+/* CHART wrapper */
+.chart-wrap{position:relative;height:220px;}
+canvas{max-height:220px;}
+
+/* SCORE summary in eval */
+.score-summary{background:linear-gradient(135deg,var(--p-bg),#fff);border-radius:var(--r);
+ padding:14px;margin-top:18px;border:1px solid var(--p3);}
+.score-big{font-size:48px;font-weight:900;color:var(--p);text-align:center;line-height:1;}
+.score-lbl{text-align:center;font-size:12px;color:var(--muted);margin-top:4px;}
+.score-badge{text-align:center;margin-top:8px;}
+
+@media(max-width:900px){
+ .g3,.rec-grid{grid-template-columns:1fr 1fr;}
+ .kpi-row{grid-template-columns:repeat(2,1fr);}
+ .g21{grid-template-columns:1fr;}
+ .cl-grid{grid-template-columns:1fr;}
+}
+@media(max-width:600px){
+ header{padding:0 14px;}
+ .content{padding:12px 14px 50px;}
+ .kpi-row{padding:12px 14px 0;}
+ .tabs-wrap{padding:10px 14px 0;}
+ .g3,.g2,.g21,.rec-grid{grid-template-columns:1fr;}
+ .kpi-row{grid-template-columns:1fr 1fr;}
+ .form-row{grid-template-columns:1fr;}
+}
+
+/* ICON STYLES */
+i.ph { font-size: 1.15em; vertical-align: middle; margin-right: 4px; }
+.tab-btn i.ph { font-size: 1.25em; }
+.kpi-ico i.ph { font-size: 24px; margin-right: 0; }
+.btn-act i.ph { font-size: 1.2em; margin-right: 2px; }
+
+</style>
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+ <div class="h-left">
+ <div class="logo"><i class="ph ph-briefcase" style="font-size:24px;"></i></div>
+ <div class="h-title">
+ <h1>Gestão de Colaboradores</h1>
+ <p id="hDate"></p>
+ </div>
+ </div>
+ <div class="h-right">
+ <span class="h-date" id="hTime"></span>
+ <button class="btn-pdf" onclick="exportarPDFGeral()"><i class="ph ph-file-pdf"></i> Exportar PDF</button>
+ <button class="btn-reset" onclick="confirmarReset()">↺ Reset</button>
+ </div>
+</header>
+
+<!-- TABS -->
+<div class="tabs-wrap">
+ <div class="tabs">
+ <button class="tab-btn active" onclick="switchTab('dashboard',this)"><i class="ph ph-squares-four"></i> Dashboard</button>
+ <button class="tab-btn" onclick="switchTab('colaboradores',this)"><i class="ph ph-users"></i> Colaboradores</button>
+ <button class="tab-btn" onclick="switchTab('avaliacao',this)"><i class="ph ph-clipboard-text"></i> Avaliação</button>
+ <button class="tab-btn" onclick="switchTab('checklists',this)"><i class="ph ph-check-square-offset"></i> Checklists</button>
+ <button class="tab-btn" onclick="switchTab('matriz',this)"><i class="ph ph-target"></i> Matriz 9-Box</button>
+ <button class="tab-btn" onclick="switchTab('recomendacoes',this)"><i class="ph ph-lightbulb"></i> Recomendações</button>
+ <button class="tab-btn" onclick="switchTab('historico',this)"><i class="ph ph-clock-counter-clockwise"></i> Histórico</button>
+ </div>
+</div>
+
+<!-- KPIs -->
+<div class="kpi-row" id="kpiRow"></div>
+
+<!-- CONTENT -->
+<div class="content">
+
+ <!-- TAB: DASHBOARD -->
+ <div class="tab-pane active" id="tab-dashboard">
+ <div class="g21 mt">
+ <div>
+ <div class="g2">
+ <div class="card">
+ <div class="card-hd"><div class="card-title"> Top Performers</div></div>
+ <div id="topList" class="top-bot"></div>
+ </div>
+ <div class="card">
+ <div class="card-hd"><div class="card-title"> Atenção Necessária</div></div>
+ <div id="botList" class="top-bot"></div>
+ </div>
+ </div>
+ <div class="card mt">
+ <div class="card-hd">
+ <div class="card-title"> Performance Geral</div>
+ </div>
+ <div class="chart-wrap"><canvas id="chartBar"></canvas></div>
+ </div>
+ </div>
+ <div>
+ <div class="card">
+ <div class="card-hd"><div class="card-title"> Distribuição</div></div>
+ <div class="chart-wrap"><canvas id="chartDon"></canvas></div>
+ </div>
+ <div class="card mt">
+ <div class="card-hd"><div class="card-title"> Por Critério</div></div>
+ <div class="chart-wrap"><canvas id="chartRadar"></canvas></div>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <!-- TAB: COLABORADORES -->
+ <div class="tab-pane" id="tab-colaboradores">
+ <div class="card mt">
+ <div class="card-hd">
+ <div class="card-title"> Lista de Colaboradores</div>
+ <button class="btn-p" onclick="abrirFormColab()"><i class="ph ph-user-plus"></i> Novo Colaborador</button>
+ </div>
+ <div class="filters">
+ <div class="srch"><span class="srch-ic"></span>
+ <input type="text" id="srchInp" placeholder="Buscar colaborador..." oninput="filtrar()">
+ </div>
+ <select class="fsel" id="selCargo" onchange="filtrar()"><option value="">Todos os cargos</option></select>
+ <select class="fsel" id="selTurno" onchange="filtrar()">
+ <option value="">Todos os turnos</option>
+ <option>Manhã</option><option>Tarde</option><option>Noite</option>
+ </select>
+ <select class="fsel" id="selRec" onchange="filtrar()">
+ <option value="">Todas as situações</option>
+ <option>Promover</option><option>Manter</option><option>Treinar</option><option>Em Risco</option>
+ </select>
+ </div>
+ <div class="tbl-wrap">
+ <table>
+ <thead>
+ <tr>
+ <th>Colaborador</th><th>Cargo</th><th>Turno</th>
+ <th>Score</th><th>Situação</th><th>Ações</th>
+ </tr>
+ </thead>
+ <tbody id="tblBody"></tbody>
+ </table>
+ </div>
+ </div>
+ </div>
+
+ <!-- TAB: AVALIAÇÃO -->
+ <div class="tab-pane" id="tab-avaliacao">
+ <div class="card mt">
+ <div class="aval-sel-wrap">
+ <label> Colaborador:</label>
+ <select class="fsel" id="avalSel" onchange="carregarAval()" style="flex:1;max-width:300px;"></select>
+ <button class="btn-g" onclick="exportarPDFColaborador()" title="Gerar PDF individual deste colaborador"> PDF Individual</button>
+ </div>
+ <div id="avalForm"></div>
+ </div>
+ </div>
+
+ <!-- TAB: CHECKLISTS -->
+ <div class="tab-pane" id="tab-checklists">
+ <div class="card mt">
+ <div class="card-hd">
+ <div class="card-title"> Checklists por Cargo</div>
+ <div style="display:flex;gap:8px;align-items:center;">
+ <select class="fsel" id="selCheckCargo" onchange="renderChecklist()"><option value="todos">Todos os cargos</option></select>
+ <button class="btn-p" onclick="exportarPDFChecklist()"> PDF Checklist</button>
+ </div>
+ </div>
+ <div id="checklistContainer"></div>
+ </div>
+ </div>
+
+ <!-- TAB: MATRIZ 9-BOX -->
+ <div class="tab-pane" id="tab-matriz">
+ <div class="card mt">
+ <div class="card-hd">
+ <div class="card-title"> Matriz 9-Box · Performance × Potencial</div>
+ <button class="btn-p" onclick="exportarPDFMatriz()"> PDF Matriz</button>
+ </div>
+ <div style="overflow-x:auto;">
+ <div id="m9box" class="matrix-9box" style="max-width:700px;min-width:420px;"></div>
+ </div>
+ <div style="margin-top:14px;font-size:11px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;">
+ <span>🟢 Verde = alto potencial / alta performance</span>
+ <span> Azul = médio</span>
+ <span>🟡 Amarelo = baixa performance ou potencial</span>
+ </div>
+ </div>
+ </div>
+
+ <!-- TAB: RECOMENDAÇÕES -->
+ <div class="tab-pane" id="tab-recomendacoes">
+ <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+ <button class="btn-p" onclick="exportarPDFRecomendacoes()"> PDF Recomendações</button>
+ </div>
+ <div id="recContainer"></div>
+ </div>
+
+ <!-- TAB: HISTÓRICO -->
+ <div class="tab-pane" id="tab-historico">
+ <div class="card mt">
+ <div class="card-hd">
+ <div class="card-title"> Histórico de Avaliações</div>
+ <button class="btn-p" onclick="exportarPDFHistorico()"> PDF Histórico</button>
+ </div>
+ <div class="filters">
+ <div class="srch"><span class="srch-ic"></span>
+ <input type="text" id="srchHist" placeholder="Buscar no histórico..." oninput="renderHistorico()">
+ </div>
+ <select class="fsel" id="selHistCargo" onchange="renderHistorico()"><option value="">Todos os cargos</option></select>
+ </div>
+ <div id="histContainer"></div>
+ </div>
+ </div>
+
+</div><!-- /content -->
+
+<!-- MODAL: DETALHE COLABORADOR -->
+<div class="overlay" id="mDet">
+ <div class="modal">
+ <div class="modal-hd">
+ <div class="modal-title" id="mDetTitle">Detalhes</div>
+ <button class="modal-close" onclick="closeOverlay('mDet')">×</button>
+ </div>
+ <div class="modal-body" id="mDetBody"></div>
+ <div class="modal-ft">
+ <button class="btn-sec" onclick="closeOverlay('mDet')">Fechar</button>
+ <button class="btn-g" id="mDetPdfBtn"> Gerar PDF</button>
+ <button class="btn-p" id="mDetAvalBtn"><i class="ph ph-pencil-line"></i> Avaliar</button>
+ </div>
+ </div>
+</div>
+
+<!-- MODAL: FORM COLABORADOR -->
+<div class="overlay" id="mForm">
+ <div class="modal">
+ <div class="modal-hd">
+ <div class="modal-title" id="mFormTitle">Colaborador</div>
+ <button class="modal-close" onclick="closeOverlay('mForm')">×</button>
+ </div>
+ <div class="modal-body">
+ <input type="hidden" id="fId">
+ <div class="form-row">
+ <div class="form-group">
+ <div class="form-lbl">Nome completo</div>
+ <input class="inp" type="text" id="fNome" placeholder="Nome do colaborador">
+ </div>
+ <div class="form-group">
+ <div class="form-lbl">Cargo</div>
+ <input class="inp" type="text" id="fCargo" placeholder="Ex: Cozinheiro, Garçom...">
+ </div>
+ </div>
+ <div class="form-row">
+ <div class="form-group">
+ <div class="form-lbl">Turno</div>
+ <select class="inp fsel" id="fTurno">
+ <option>Manhã</option><option>Tarde</option><option>Noite</option>
+ </select>
+ </div>
+ <div class="form-group">
+ <div class="form-lbl">Data de Admissão</div>
+ <input class="inp" type="date" id="fAdm">
+ </div>
+ </div>
+ </div>
+ <div class="modal-ft">
+ <button class="btn-sec" onclick="closeOverlay('mForm')">Cancelar</button>
+ <button class="btn-p" onclick="salvarColab()"> Salvar</button>
+ </div>
+ </div>
+</div>
+
+<!-- MODAL: CONFIRM -->
+<div class="overlay" id="mConfirm">
+ <div class="confirm-box">
+ <div class="confirm-ico" id="mConIco"></div>
+ <div class="confirm-title" id="mConTitle">Confirmar</div>
+ <div class="confirm-msg" id="mConMsg"></div>
+ <div class="confirm-btns">
+ <button class="btn-sec" onclick="closeOverlay('mConfirm')">Cancelar</button>
+ <button class="btn-p" id="mConOk">Confirmar</button>
+ </div>
+ </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// DADOS BASE
+// ═══════════════════════════════════════════════════════
+const CRITERIOS = [
+ {key:'metas', label:'Cumprimento de Metas', desc:'Atingimento de objetivos definidos no período avaliado'},
+ {key:'atitude', label:'Atitude e Proatividade', desc:'Iniciativa, disposição e postura profissional'},
+ {key:'tecnico', label:'Conhecimento Técnico', desc:'Domínio das habilidades e processos do cargo'},
+ {key:'equipe', label:'Trabalho em Equipe', desc:'Colaboração, comunicação e sinergia com colegas'},
+ {key:'pontual', label:'Pontualidade e Presença',desc:'Assiduidade, respeito a horários e comprometimento'},
+ {key:'higiene', label:'Higiene e Organização', desc:'Padrão de limpeza, mise en place e cuidado com o ambiente'},
+ {key:'cliente', label:'Foco no Cliente', desc:'Qualidade do atendimento e satisfação do cliente'},
+ {key:'aprend', label:'Aprendizado Contínuo', desc:'Absorção de treinamentos e aplicação de novos conhecimentos'},
+];
+
+const CHECKLISTS_DEFAULT = {
+ 'Chef de Cozinha': {
+ metas: ['Atinge metas mensais de CMV', 'Reduz desperdícios no setor', 'Mantém custo de equipe na meta'],
+ atitude: ['Demonstra liderança em crises', 'Incentiva a brigada', 'Resolve conflitos internamente'],
+ tecnico: ['Domina técnicas avançadas de cocção', 'Conhece novas tendências', 'Cria fichas técnicas precisas'],
+ equipe: ['Distribui bem as tarefas', 'Comunica-se com clareza', 'Apoia as demais praças'],
+ pontual: ['Chega no horário combinado', 'Inicia o briefing pontualmente', 'Não tem faltas injustificadas'],
+ higiene: ['Mantém alto padrão da vigilância', 'Usa uniforme completo e limpo', 'Exige higiene da equipe'],
+ cliente: ['Atende pedidos especiais', 'Garante agilidade no cardápio', 'Lê feedbacks no salão'],
+ aprend: ['Participa de reciclagens', 'Estuda novos métodos', 'Aplica novos conhecimentos']
+ },
+ 'Garçom': {
+ metas: ['Atinge cota de ticket médio', 'Vende sobremesas e bebidas premium', 'Reduz cancelamentos'],
+ atitude: ['Recepciona com sorriso', 'Mantém postura no salão', 'Demonstra proatividade'],
+ tecnico: ['Sabe carregar bandeja padrão', 'Conhece o cardápio todo', 'Usa o PDV corretamente'],
+ equipe: ['Apoia colegas no fechamento', 'Comunica demoras à cozinha', 'Ajuda no salão inteiro'],
+ pontual: ['Entra no turno sem atraso', 'Cobre folgas solicitadas', 'Faz pausas no tempo certo'],
+ higiene: ['Avental e uniforme impecáveis', 'Cuida da higiene pessoal', 'Limpa mesas rapidamente'],
+ cliente: ['Resolve queixas prontamente', 'Antecipa as necessidades do cliente', 'Trata Vip/Fiéis pelo nome'],
+ aprend: ['Decora pratos novos', 'Participa de degustações', 'Melhora técnicas de venda']
+ },
+ 'Outro': {
+ metas: ['Cumpre entregas diárias', 'Atinge as métricas da função', 'Não deixa pendências'],
+ atitude: ['Postura profissional firme', 'Iniciativa para resolver problemas', 'Disponibilidade para ajudar'],
+ tecnico: ['Domina os processos da área', 'Usa as ferramentas corretamente', 'Realiza tarefas sem erros'],
+ equipe: ['Preza por bom clima', 'Evita fofocas', 'Comunica-se bem com todos'],
+ pontual: ['Cumpre escala', 'Avisa atrasos com antecedência', 'Assiduidade regular'],
+ higiene: ['EPIs e limpeza da área', 'Limpeza da mesa de trabalho', 'Cuidado com equipamentos'],
+ cliente: ['Atende com empatia', 'Foco na solução rápida', 'Garante satisfação final'],
+ aprend: ['Aprende com erros', 'Busca feedback contínuo', 'Procura treinar novas skills']
+ }
+};
+
+let checklistsConfig = {};
+
+const CORES = ['#1565C0','#2E7D32','#6A1B9A','#C62828','#E65100','#00838F','#F57F17','#37474F'];
+
+let DADOS_PADRAO = [
+ {id:1,nome:'Ana Beatriz Costa', cargo:'Chef de Cozinha', turno:'Manhã', dataAdm:'2022-03-15',cor:0,scores:{metas:9.2,atitude:8.8,tecnico:9.5,equipe:8.5,pontual:9.0,higiene:9.3,cliente:8.7,aprend:8.9},historico:[7.5,8.1,8.6,9.0],obs:'Excelente liderança. Candidata natural a Head Chef.'},
+ {id:2,nome:'Carlos Eduardo Mendes', cargo:'Garçom', turno:'Tarde', dataAdm:'2023-01-10',cor:1,scores:{metas:8.0,atitude:8.5,tecnico:7.8,equipe:9.0,pontual:8.2,higiene:8.0,cliente:9.2,aprend:7.5},historico:[7.0,7.8,8.1],obs:'Ótimo com clientes. Melhorar técnicas de mise en place.'},
+ {id:3,nome:'Fernanda Lima', cargo:'Cozinheiro', turno:'Manhã', dataAdm:'2023-06-05',cor:2,scores:{metas:7.5,atitude:7.0,tecnico:7.8,equipe:7.2,pontual:6.8,higiene:7.5,cliente:7.0,aprend:7.3},historico:[6.5,7.0,7.5],obs:'Estável. Precisa melhorar pontualidade.'},
+ {id:4,nome:'Ricardo Souza', cargo:'Sous Chef', turno:'Noite', dataAdm:'2022-08-20',cor:3,scores:{metas:8.5,atitude:8.0,tecnico:8.8,equipe:7.5,pontual:8.0,higiene:8.5,cliente:7.8,aprend:8.2},historico:[7.8,8.0,8.3],obs:'Sólido tecnicamente. Trabalhar liderança.'},
+ {id:5,nome:'Juliana Pereira', cargo:'Recepcionista', turno:'Manhã', dataAdm:'2023-09-12',cor:4,scores:{metas:5.5,atitude:5.0,tecnico:5.8,equipe:6.0,pontual:5.2,higiene:6.0,cliente:5.5,aprend:5.0},historico:[5.0,5.2,5.5],obs:'Período de aviso. Performance abaixo do esperado.'},
+ {id:6,nome:'Marcos Oliveira', cargo:'Auxiliar de Cozinha',turno:'Tarde',dataAdm:'2024-01-08',cor:5,scores:{metas:7.0,atitude:8.5,tecnico:6.5,equipe:8.8,pontual:7.5,higiene:7.2,cliente:7.0,aprend:8.0},historico:[6.8,7.2],obs:'Muito proativo. Evoluiu muito em 2 meses.'},
+ {id:7,nome:'Patricia Gomes', cargo:'Garçom', turno:'Noite', dataAdm:'2023-04-18',cor:6,scores:{metas:7.8,atitude:7.5,tecnico:7.2,equipe:8.0,pontual:8.5,higiene:7.8,cliente:8.5,aprend:7.0},historico:[7.0,7.5,7.8],obs:'Consistente. Foco em técnicas de venda.'},
+ {id:8,nome:'Bruno Takahashi', cargo:'Gerente', turno:'Manhã', dataAdm:'2021-11-01',cor:7,scores:{metas:9.0,atitude:9.2,tecnico:8.8,equipe:9.0,pontual:9.5,higiene:8.5,cliente:9.0,aprend:8.8},historico:[8.0,8.5,8.8,9.1],obs:'Referência da equipe. Considerar promoção a gerente geral.'},
+];
+
+let colaboradores = [];
+let nextId = 100;
+let historicoGlobal = [];
+let chartsMap = {};
+let checkStates = {};
+
+// ═══════════════════════════════════════════════════════
+// STORAGE
+// ═══════════════════════════════════════════════════════
+function salvarStorage(){
+ localStorage.setItem('colab_v3', JSON.stringify(colaboradores));
+ localStorage.setItem('hist_v3', JSON.stringify(historicoGlobal));
+ localStorage.setItem('checks_cfg_v4', JSON.stringify(checklistsConfig));
+}
+function carregarStorage(){
+ try{
+ const c=localStorage.getItem('colab_v3');
+ const h=localStorage.getItem('hist_v3');
+ const ck=localStorage.getItem('checks_cfg_v4');
+ if(c){colaboradores=JSON.parse(c);nextId=Math.max(...colaboradores.map(x=>x.id))+1;}
+ if(h)historicoGlobal=JSON.parse(h);
+ if(ck){
+ checklistsConfig=JSON.parse(ck);
+ }else{
+ checklistsConfig=JSON.parse(JSON.stringify(CHECKLISTS_DEFAULT));
+ }
+ return !!c;
+ }catch(e){return false;}
+}
+
+// ═══════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════
+function initials(n){return n.split(' ').slice(0,2).map(x=>x[0]).join('').toUpperCase();}
+function calcScore(s){const k=Object.keys(s);return k.reduce((a,c)=>a+s[c],0)/k.length;}
+function scoreCor(s){return s>=8.5?'#2E7D32':s>=7?'#1565C0':s>=5.5?'#E65100':'#C62828';}
+function getRec(s){
+ if(s>=8.5)return{label:'Promover',cls:'b-p'};
+ if(s>=7) return{label:'Manter', cls:'b-m'};
+ if(s>=5.5)return{label:'Treinar', cls:'b-t'};
+ return{label:'Em Risco',cls:'b-r'};
+}
+function perfTier(s){return s>=8?'alto':s>=6.5?'medio':'baixo';}
+function potencial(hist){
+ if(hist.length<2)return 'medio';
+ const trend=hist[hist.length-1]-hist[0];
+ return trend>=1.5?'alto':trend>=-0.5?'medio':'baixo';
+}
+function fmt(d){return d?new Date(d+'T00:00').toLocaleDateString('pt-BR'):'—';}
+function tempoEmpresa(d){
+ if(!d)return'—';
+ const ms=Date.now()-new Date(d+'T00:00');
+ const mo=Math.floor(ms/(1000*60*60*24*30));
+ return mo<12?mo+' meses':Math.floor(mo/12)+'a '+(mo%12)+'m';
+}
+
+// ═══════════════════════════════════════════════════════
+// HEADER CLOCK
+// ═══════════════════════════════════════════════════════
+function initHeader(){
+ const tick=()=>{
+ const now=new Date();
+ document.getElementById('hDate').textContent=
+ now.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+ document.getElementById('hTime').textContent=
+ now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+ };
+ tick(); setInterval(tick,1000);
+}
+
+// ═══════════════════════════════════════════════════════
+// KPIs
+// ═══════════════════════════════════════════════════════
+function renderKPIs(){
+ const total=colaboradores.length;
+ const scores=colaboradores.map(c=>calcScore(c.scores));
+ const avg=scores.length?scores.reduce((a,b)=>a+b,0)/scores.length:0;
+ const promover=scores.filter(s=>s>=8.5).length;
+ const risco=scores.filter(s=>s<5.5).length;
+ document.getElementById('kpiRow').innerHTML=`
+ <div class="kpi">
+ <div class="kpi-ico ic-b"><i class="ph ph-users" style="color:var(--p);"></i></div>
+ <div><div class="kpi-val">${total}</div>
+ <div class="kpi-lbl">Colaboradores</div>
+ <div class="kpi-sub up">ativos</div></div>
+ </div>
+ <div class="kpi g">
+ <div class="kpi-ico ic-g"><i class="ph ph-star" style="color:var(--text);"></i></div>
+ <div><div class="kpi-val">${avg.toFixed(1)}</div>
+ <div class="kpi-lbl">Score Médio</div>
+ <div class="kpi-sub ${avg>=7.5?'up':avg>=6?'warn':'down'}">${avg>=8.5?'Excelente':avg>=7?'Bom':avg>=6?'Regular':'Atenção'}</div></div>
+ </div>
+ <div class="kpi g">
+ <div class="kpi-ico ic-g"><i class="ph ph-star" style="color:var(--text);"></i></div>
+ <div><div class="kpi-val">${promover}</div>
+ <div class="kpi-lbl">Para Promover</div>
+ <div class="kpi-sub up">${total?Math.round(promover/total*100):0}% da equipe</div></div>
+ </div>
+ <div class="kpi r">
+ <div class="kpi-ico ic-r"><i class="ph ph-warning" style="color:var(--text);"></i></div>
+ <div><div class="kpi-val">${risco}</div>
+ <div class="kpi-lbl">Em Risco</div>
+ <div class="kpi-sub ${risco>0?'down':'up'}">${risco>0?'ação imediata':'equipe segura'}</div></div>
+ </div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// TOP / BOTTOM
+// ═══════════════════════════════════════════════════════
+function renderTopBot(){
+ const sorted=[...colaboradores].map(c=>({...c,s:calcScore(c.scores)})).sort((a,b)=>b.s-a.s);
+ const top=sorted.slice(0,4);
+ const bot=sorted.slice(-4).reverse();
+ const row=(c,i,isTop)=>`
+ <div class="tb-row" onclick="openModalDet(${c.id})" style="cursor:pointer;">
+ <span class="tb-pos">#${i+1}</span>
+ <div class="avatar" style="background:${CORES[c.cor]};width:26px;height:26px;font-size:9px;">${initials(c.nome)}</div>
+ <span class="tb-nm">${c.nome.split(' ')[0]} ${c.nome.split(' ').slice(-1)[0]}</span>
+ <span class="tb-sc" style="color:${scoreCor(c.s)};">${c.s.toFixed(1)}</span>
+ </div>`;
+ document.getElementById('topList').innerHTML=top.map((c,i)=>row(c,i,true)).join('');
+ document.getElementById('botList').innerHTML=bot.map((c,i)=>row(c,i,false)).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// TABLE
+// ═══════════════════════════════════════════════════════
+function renderTable(data){
+ document.getElementById('tblBody').innerHTML=data.map(c=>{
+ const s=calcScore(c.scores);
+ const rec=getRec(s);
+ const barW=Math.round(s*10);
+ return`<tr>
+ <td><div class="emp-row">
+ <div class="avatar" style="background:${CORES[c.cor]};">${initials(c.nome)}</div>
+ <div><div class="emp-nm">${c.nome}</div><div class="emp-cg">${fmt(c.dataAdm)}</div></div>
+ </div></td>
+ <td>${c.cargo}</td>
+ <td>${c.turno}</td>
+ <td><div class="sc-cell">
+ <div class="sc-bar-w"><div class="sc-bar" style="width:${barW}%;background:${scoreCor(s)};"></div></div>
+ <span class="sc-num" style="color:${scoreCor(s)};">${s.toFixed(1)}</span>
+ </div></td>
+ <td><span class="badge ${rec.cls}">${rec.label}</span></td>
+ <td style="display:flex;gap:5px;flex-wrap:wrap;">
+ <button class="btn-act" onclick="openModalDet(${c.id})"><i class="ph ph-eye"></i> Ver</button>
+ <button class="btn-act" onclick="irParaAval(${c.id})"><i class="ph ph-pencil-line"></i> Avaliar</button>
+ <button class="btn-act pdf-emp" onclick="exportarPDFUnicoID(${c.id})"> PDF</button>
+ <button class="btn-act" onclick="abrirFormColab(${c.id})"><i class="ph ph-pencil-simple"></i> Editar</button>
+ <button class="btn-act del" title="Excluir" onclick="confirmarExclusao(${c.id})"><i class="ph ph-trash"></i></button>
+ </td>
+ </tr>`;
+ }).join('');
+}
+
+function filtrar(){
+ const q=document.getElementById('srchInp').value.toLowerCase();
+ const cargo=document.getElementById('selCargo').value;
+ const turno=document.getElementById('selTurno').value;
+ const rec=document.getElementById('selRec').value;
+ renderTable(colaboradores.filter(c=>{
+ const s=calcScore(c.scores);
+ const r=getRec(s).label;
+ return(!q||(c.nome.toLowerCase().includes(q)||c.cargo.toLowerCase().includes(q)))
+ &&(!cargo||c.cargo===cargo)
+ &&(!turno||c.turno===turno)
+ &&(!rec||r===rec);
+ }));
+}
+
+function popularFiltros(){
+ const cargos=[...new Set(colaboradores.map(c=>c.cargo))].sort();
+ ['selCargo','selHistCargo','selCheckCargo'].forEach(id=>{
+ const el=document.getElementById(id);
+ if(!el)return;
+ const def=id==='selCheckCargo'?'<option value="todos">Todos os cargos</option>':'<option value="">Todos os cargos</option>';
+ el.innerHTML=def+cargos.map(c=>`<option>${c}</option>`).join('');
+ });
+}
+
+// ═══════════════════════════════════════════════════════
+// AVALIAÇÃO
+// ═══════════════════════════════════════════════════════
+function popularEvalSel(){
+ const sel=document.getElementById('avalSel');
+ const cur=sel.value;
+ sel.innerHTML=colaboradores.map(c=>`<option value="${c.id}">${c.nome} — ${c.cargo}</option>`).join('');
+ if(cur)sel.value=cur;
+ carregarAval();
+}
+
+function carregarAval(){
+ const id=+document.getElementById('avalSel').value;
+ const c=colaboradores.find(x=>x.id===id);
+ if(!c){document.getElementById('avalForm').innerHTML='';return;}
+ let h=`<div class="g3">`;
+ const cfg = checklistsConfig[c.cargo] || checklistsConfig['Outro'] || {};
+ CRITERIOS.forEach(cr=>{
+ const v=c.scores[cr.key]||5;
+ const pct=Math.round(v*10);
+ const items=cfg[cr.key]||[];
+ 
+ let checksHtml='';
+ if(items.length>0){
+ checksHtml='<div style="margin-top:10px;background:var(--bg);padding:10px;border-radius:var(--rs);">';
+ items.forEach((item,i)=>{
+ checksHtml+=`<div style="display:flex;align-items:start;gap:8px;margin-bottom:6px;font-size:11.5px;">
+ <input type="checkbox" id="chk_${cr.key}_${i}" value="${item}" onchange="autoCalcScore('${cr.key}',${id},${items.length})" style="margin-top:2px;">
+ <label for="chk_${cr.key}_${i}" style="color:var(--text2);line-height:1.4;cursor:pointer;">${item}</label>
+ </div>`;
+ });
+ checksHtml+='</div>';
+ }
+
+ h+=`<div class="form-group">
+ <div class="form-lbl">${cr.label}
+ <span class="sc-disp" id="disp_${cr.key}">${v.toFixed(1)}</span>
+ </div>
+ <div class="crit-desc">${cr.desc}</div>
+ <input type="range" min="0" max="10" step="0.1" value="${v}"
+ style="--val:${pct}%"
+ oninput="updSlider(this,'${cr.key}',${id})"
+ id="sl_${cr.key}">
+ <div class="sl-lbls"><span>0 — Crítico</span><span>5 — Regular</span><span>10 — Excelente</span></div>
+ ${checksHtml}
+ </div>`;
+ });
+ h+=`</div>
+ <div class="form-group mt">
+ <div class="form-lbl">Observações</div>
+ <textarea class="obs-area" id="obsArea" rows="3">${c.obs||''}</textarea>
+ </div>
+ <div class="score-summary">
+ <div class="score-big" id="scoreBig">${calcScore(c.scores).toFixed(1)}</div>
+ <div class="score-lbl">Score Atual</div>
+ <div class="score-badge"><span class="badge ${getRec(calcScore(c.scores)).cls}">${getRec(calcScore(c.scores)).label}</span></div>
+ </div>
+ <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end;">
+ <button class="btn-g" onclick="exportarPDFColaborador()"> PDF Individual</button>
+ <button class="btn-p" onclick="salvarAval(${id})"> Salvar Avaliação</button>
+ </div>`;
+ document.getElementById('avalForm').innerHTML=h;
+}
+
+function autoCalcScore(key,id,total){
+ let checked=0;
+ for(let i=0;i<total;i++){
+ if(document.getElementById(`chk_${key}_${i}`).checked) checked++;
+ }
+ let ns = total>0?(checked/total)*10:0;
+ ns = Math.min(10, Math.max(0, ns));
+ const el = document.getElementById(`sl_${key}`);
+ el.value = ns.toFixed(1);
+ updSlider(el,key,id);
+}
+
+function updSlider(el, key, id){
+ const v=parseFloat(el.value);
+ const pct=Math.round(v*10);
+ el.style.setProperty('--val',pct+'%');
+ document.getElementById('disp_'+key).textContent=v.toFixed(1);
+ const c=colaboradores.find(x=>x.id===id);
+ if(c){
+ c.scores[key]=v;
+ const s=calcScore(c.scores);
+ const sb=document.getElementById('scoreBig');
+ if(sb)sb.textContent=s.toFixed(1);
+ const badge=document.querySelector('.score-badge');
+ if(badge){const r=getRec(s);badge.innerHTML=`<span class="badge ${r.cls}">${r.label}</span>`;}
+ }
+}
+
+function salvarAval(id){
+ const c=colaboradores.find(x=>x.id===id);
+ if(!c)return;
+ c.obs=document.getElementById('obsArea').value;
+ const s=calcScore(c.scores);
+ c.historico.push(parseFloat(s.toFixed(2)));
+ 
+ const evChecks = {};
+ const cfg = checklistsConfig[c.cargo] || checklistsConfig['Outro'] || {};
+ CRITERIOS.forEach(cr=>{
+ const items = cfg[cr.key]||[];
+ const mk = [];
+ items.forEach((it,i)=>{
+ const el=document.getElementById(`chk_${cr.key}_${i}`);
+ if(el&&el.checked) mk.push(it);
+ });
+ evChecks[cr.key] = {total:items.length, marked:mk};
+ });
+
+ historicoGlobal.unshift({
+ id:Date.now(),colabId:id,nome:c.nome,cargo:c.cargo,turno:c.turno,
+ score:s,scores:{...c.scores},obs:c.obs,checks:evChecks,
+ data:new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})
+ });
+ salvarStorage(); refreshAll();
+ showToast(' Avaliação e Checklists salvos com sucesso!','ok');
+}
+
+function irParaAval(id){
+ document.getElementById('avalSel').value=id;
+ switchTab('avaliacao', document.querySelectorAll('.tab-btn')[2]);
+ carregarAval();
+ closeOverlay('mDet');
+}
+
+// ═══════════════════════════════════════════════════════
+// CHECKLIST
+// ═══════════════════════════════════════════════════════
+function renderChecklist(){
+ let sel=document.getElementById('selCheckCargo').value;
+ if(sel==='todos') sel='Chef de Cozinha';
+ const container=document.getElementById('checklistContainer');
+ 
+ if(!checklistsConfig[sel]){
+ checklistsConfig[sel] = JSON.parse(JSON.stringify(checklistsConfig['Outro']||{}));
+ }
+ 
+ let html=`<div style="margin-bottom:18px;font-size:14px;color:var(--text);border-bottom:1px solid var(--border);padding-bottom:10px;">
+ <strong>Configurando Checklist de Avaliação para: <span style="color:var(--p);">${sel}</span></strong>
+ <p style="font-size:11px;color:var(--muted);margin-top:4px;">Adicione ou remova tarefas que serão avaliadas para este cargo especificamente e clique em Salvar.</p>
+ </div>`;
+ 
+ CRITERIOS.forEach(cr=>{
+ const items = checklistsConfig[sel][cr.key]||[];
+ html+=`<div class="cl-section" style="background:var(--bg);padding:14px;border-radius:var(--rs);margin-bottom:14px;">
+ <div class="cl-cargo" style="background:none;padding:0;font-size:13px;color:var(--text);margin-bottom:10px;border:none;"> ${cr.label}</div>
+ <div class="cl-grid" style="grid-template-columns:1fr;gap:6px;">
+ ${items.map((item,i)=>`
+ <div class="cl-item" style="padding:6px 10px;background:var(--card);">
+ <span class="cl-txt" style="flex:1;">${item}</span>
+ <button class="btn-act del" title="Remover" onclick="removerChecklistItem('${sel}','${cr.key}',${i})">Excluir</button>
+ </div>`).join('')}
+ </div>
+ <div style="display:flex;gap:8px;margin-top:10px;">
+ <input type="text" class="inp" id="novoCk_${cr.key}" placeholder="Nova tarefa exigida de ${cr.label}...">
+ <button class="btn-p" onclick="addChecklistItem('${sel}','${cr.key}')">Adicionar</button>
+ </div>
+ </div>`;
+ });
+ container.innerHTML=html;
+}
+
+function addChecklistItem(cargo, key){
+ const inp = document.getElementById(`novoCk_${key}`);
+ const v = inp.value.trim();
+ if(!v)return;
+ if(!checklistsConfig[cargo][key]) checklistsConfig[cargo][key]=[];
+ checklistsConfig[cargo][key].push(v);
+ inp.value='';
+ salvarStorage();
+ renderChecklist();
+ showToast('Item adicionado!','ok');
+}
+
+function removerChecklistItem(cargo, key, idx){
+ checklistsConfig[cargo][key].splice(idx,1);
+ salvarStorage();
+ renderChecklist();
+}
+
+// ═══════════════════════════════════════════════════════
+// MATRIZ 9-BOX
+// ═══════════════════════════════════════════════════════
+const POTS=['alto','medio','baixo'];
+const PERFS=['baixo','medio','alto'];
+const CELLS=[
+ {perf:'alto',pot:'alto', cls:'m-c3',title:'Estrela'},
+ {perf:'medio',pot:'alto', cls:'m-c2',title:'Alto Potencial'},
+ {perf:'baixo',pot:'alto', cls:'m-c1',title:'Enigma'},
+ {perf:'alto',pot:'medio', cls:'m-c6',title:'Core Sólido'},
+ {perf:'medio',pot:'medio',cls:'m-c5',title:'Mantenedor'},
+ {perf:'baixo',pot:'medio',cls:'m-c4',title:'Em Risco'},
+ {perf:'alto',pot:'baixo', cls:'m-c9',title:'Especialista'},
+ {perf:'medio',pot:'baixo',cls:'m-c8',title:'Manter/Dev.'},
+ {perf:'baixo',pot:'baixo',cls:'m-c7',title:'Desligar?'},
+];
+
+function renderMatriz(){
+ let h='';
+ POTS.forEach(pot=>{
+ h+=`<div class="m-lbl-y">${pot==='alto'?'Alto':pot==='medio'?'Médio':'Baixo'}</div>`;
+ PERFS.forEach(perf=>{
+ const cell=CELLS.find(c=>c.perf===perf&&c.pot===pot);
+ const emps=colaboradores.filter(c=>perfTier(calcScore(c.scores))===perf&&potencial(c.historico)===pot);
+ h+=`<div class="m-cell ${cell.cls}">
+ <div class="m-title">${cell.title}</div>
+ <div class="m-dots">${emps.map(c=>`
+ <div class="m-dot" style="background:${CORES[c.cor]};" onclick="openModalDet(${c.id})">
+ ${initials(c.nome)}
+ <div class="m-tip">${c.nome.split(' ')[0]} · ${calcScore(c.scores).toFixed(1)}</div>
+ </div>`).join('')}</div>
+ </div>`;
+ });
+ });
+ h+='<div></div>';
+ ['Baixa','Média','Alta'].forEach(l=>h+=`<div class="m-lbl-x">${l}</div>`);
+ document.getElementById('m9box').innerHTML=h;
+}
+
+// ═══════════════════════════════════════════════════════
+// RECOMENDAÇÕES
+// ═══════════════════════════════════════════════════════
+function renderRec(){
+ const groups={Promover:[],Manter:[],Treinar:[],'Em Risco':[]};
+ colaboradores.forEach(c=>{const s=calcScore(c.scores);groups[getRec(s).label].push({...c,score:s});});
+ const cfgs={
+ Promover:{cls:'promover',title:'⬆ Candidatos à Promoção'},
+ Manter:{cls:'manter',title:' Equipe Core — Manter e Engajar'},
+ Treinar:{cls:'treinar',title:' Necessitam Treinamento Ativo'},
+ 'Em Risco':{cls:'risco',title:' Em Risco — Ação Imediata (CLT)'},
+ };
+ const acoes={
+ Promover:()=>['Agendar 1-on-1 para plano de carreira','Trilha de progressão: cargo → coordenador/líder','Incluir em programa de mentoria','Avaliar aumento/bônus de reconhecimento','Atribuir responsabilidade de treinar novatos'],
+ Manter:()=>['Feedback mensal estruturado para manter engajamento','Identificar critério abaixo de 7.5 e criar PDI','≥1 treinamento por trimestre obrigatório','Checar satisfação com cargo e ambiente'],
+ Treinar:(c)=>{const w=CRITERIOS.slice().sort((a,b)=>c.scores[a.key]-c.scores[b.key])[0];return[
+ ` FOCO em "${w.label}" (nota ${c.scores[w.key].toFixed(1)})`,
+ 'Elaborar PDI em 7 dias com metas claras','Acompanhamento quinzenal com gestor',
+ 'Meta: score 7.0 em 60 dias — reavaliação formal','Verificar causa: processo, ferramenta ou perfil'];},
+ 'Em Risco':()=>['Reunião urgente com gestor e RH em 48h','Plano de Melhoria de Performance (PMP) — 30 dias','Documentar todas as ocorrências (proteção CLT)','Avaliar fit cultural e causas da baixa performance','Sem evolução → iniciar processo com suporte jurídico'],
+ };
+ let h='';
+ Object.entries(groups).forEach(([key,list])=>{
+ if(!list.length)return;
+ const cfg=cfgs[key];
+ h+=`<div class="rec-sec">
+ <div class="rec-hd ${cfg.cls}">${cfg.title}
+ <span style="margin-left:auto;font-size:11px;">${list.length} colaborador(es)</span>
+ </div>
+ <div class="rec-grid">${list.map(c=>{
+ const acts=typeof acoes[key]==='function'?acoes[key](c):acoes[key]();
+ const wk=CRITERIOS.slice().sort((a,b)=>c.scores[a.key]-c.scores[b.key])[0];
+ const st=CRITERIOS.slice().sort((a,b)=>c.scores[b.key]-c.scores[a.key])[0];
+ return`<div class="rec-card">
+ <div class="rec-emp-hd">
+ <div class="avatar" style="background:${CORES[c.cor]};">${initials(c.nome)}</div>
+ <div style="flex:1;min-width:0;">
+ <div style="font-weight:700;font-size:13px;color:var(--text);">${c.nome}</div>
+ <div style="font-size:11px;color:var(--muted);">${c.cargo} · ${c.turno}</div>
+ </div>
+ <div style="text-align:right;">
+ <div style="font-size:22px;font-weight:900;color:${scoreCor(c.score)};">${c.score.toFixed(1)}</div>
+ <div style="font-size:9px;color:var(--muted);">SCORE</div>
+ </div>
+ </div>
+ <div style="font-size:11.5px;color:var(--text2);line-height:1.7;margin-bottom:8px;">
+ <strong>Destaque:</strong> ${st.label} (${c.scores[st.key].toFixed(1)})<br>
+ <strong>Foco:</strong> ${wk.label} (${c.scores[wk.key].toFixed(1)})
+ </div>
+ <div class="rec-acts">
+ <div class="rec-acts-lbl">Ações Recomendadas</div>
+ ${acts.map(a=>`<div class="rec-act-item">• ${a}</div>`).join('')}
+ </div>
+ <div style="margin-top:10px;display:flex;gap:6px;">
+ <button class="btn-act" style="flex:1;" onclick="openModalDet(${c.id})"> Detalhes</button>
+ <button class="btn-act" style="flex:1;" onclick="irParaAval(${c.id})"><i class="ph ph-pencil-line"></i> Avaliar</button>
+ <button class="btn-act pdf-emp" style="flex:1;" onclick="exportarPDFUnicoID(${c.id})"> PDF</button>
+ </div>
+ </div>`;}).join('')}
+ </div>
+ </div>`;
+ });
+ document.getElementById('recContainer').innerHTML=h||'<div class="card" style="text-align:center;padding:40px;color:var(--muted);">Nenhum colaborador cadastrado.</div>';
+}
+
+// ═══════════════════════════════════════════════════════
+// HISTÓRICO
+// ═══════════════════════════════════════════════════════
+function renderHistorico(){
+ const q=(document.getElementById('srchHist').value||'').toLowerCase();
+ const cargo=document.getElementById('selHistCargo').value;
+ const container=document.getElementById('histContainer');
+ let data=historicoGlobal.filter(h=>
+ (!q||(h.nome.toLowerCase().includes(q)||h.cargo.toLowerCase().includes(q)))
+ &&(!cargo||h.cargo===cargo)
+ );
+ if(!data.length){
+ container.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted);">Nenhuma avaliação registrada ainda. Avalie um colaborador para iniciar o histórico.</div>';
+ return;
+ }
+ container.innerHTML=data.map(h=>`
+ <div class="hist-entry" style="border-left-color:${scoreCor(h.score)};">
+ <div class="hist-info">
+ <div class="hist-emp">${h.nome}</div>
+ <div class="hist-det">${h.cargo} · ${h.turno} · ${h.data}</div>
+ ${h.obs?`<div style="font-size:11.5px;color:var(--text2);margin-top:4px;font-style:italic;">"${h.obs}"</div>`:''}
+ </div>
+ <div style="text-align:right;flex-shrink:0;margin-left:14px;">
+ <div class="hist-score" style="color:${scoreCor(h.score)};">${h.score.toFixed(1)}</div>
+ <span class="badge ${getRec(h.score).cls}">${getRec(h.score).label}</span>
+ </div>
+ </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// CHARTS
+// ═══════════════════════════════════════════════════════
+function buildCharts(){
+ buildChartBar();
+ buildChartDon();
+ buildChartRadar();
+}
+
+function buildChartBar(){
+ const ctx=document.getElementById('chartBar');
+ if(!ctx)return;
+ if(chartsMap.bar){chartsMap.bar.destroy();}
+ const sorted=[...colaboradores].map(c=>({nome:c.nome.split(' ')[0],s:calcScore(c.scores)})).sort((a,b)=>b.s-a.s);
+ chartsMap.bar=new Chart(ctx,{type:'bar',data:{
+ labels:sorted.map(c=>c.nome),
+ datasets:[{label:'Score',data:sorted.map(c=>c.s),
+ backgroundColor:sorted.map(c=>scoreCor(c.s)+'CC'),
+ borderColor:sorted.map(c=>scoreCor(c.s)),borderWidth:1,borderRadius:4}]
+ },options:{responsive:true,maintainAspectRatio:false,
+ plugins:{legend:{display:false}},
+ scales:{y:{min:0,max:10,grid:{color:'#E3EAF0'}}}}});
+}
+
+function buildChartDon(){
+ const ctx=document.getElementById('chartDon');
+ if(!ctx)return;
+ if(chartsMap.don){chartsMap.don.destroy();}
+ const grp={Promover:0,Manter:0,Treinar:0,'Em Risco':0};
+ colaboradores.forEach(c=>grp[getRec(calcScore(c.scores)).label]++);
+ chartsMap.don=new Chart(ctx,{type:'doughnut',data:{
+ labels:Object.keys(grp),
+ datasets:[{data:Object.values(grp),
+ backgroundColor:['#2E7D32','#1565C0','#E65100','#C62828'],
+ borderWidth:2,borderColor:'#fff'}]
+ },options:{responsive:true,maintainAspectRatio:false,
+ plugins:{legend:{position:'bottom',labels:{font:{size:11}}}}}});
+}
+
+function buildChartRadar(){
+ const ctx=document.getElementById('chartRadar');
+ if(!ctx)return;
+ if(chartsMap.radar){chartsMap.radar.destroy();}
+ const avg=CRITERIOS.map(cr=>colaboradores.length?
+ colaboradores.reduce((a,c)=>a+c.scores[cr.key],0)/colaboradores.length:0);
+ chartsMap.radar=new Chart(ctx,{type:'radar',data:{
+ labels:CRITERIOS.map(c=>c.label.split(' ').slice(0,2).join(' ')),
+ datasets:[{label:'Média da Equipe',data:avg,
+ backgroundColor:'rgba(21,101,192,.15)',borderColor:'#1565C0',borderWidth:2,pointRadius:3}]
+ },options:{responsive:true,maintainAspectRatio:false,
+ scales:{r:{min:0,max:10,ticks:{font:{size:9}},pointLabels:{font:{size:10}}}},
+ plugins:{legend:{display:false}}}});
+}
+
+// ═══════════════════════════════════════════════════════
+// MODAL DETALHE
+// ═══════════════════════════════════════════════════════
+function openModalDet(id){
+ const c=colaboradores.find(x=>x.id===id);
+ if(!c)return;
+ const s=calcScore(c.scores);
+ const rec=getRec(s);
+ document.getElementById('mDetTitle').textContent=' '+c.nome;
+ document.getElementById('mDetBody').innerHTML=`
+ <div class="det-grid">
+ <div class="det-item"><div class="det-lbl">Cargo</div><div class="det-val">${c.cargo}</div></div>
+ <div class="det-item"><div class="det-lbl">Turno</div><div class="det-val">${c.turno}</div></div>
+ <div class="det-item"><div class="det-lbl">Admissão</div><div class="det-val">${fmt(c.dataAdm)}</div></div>
+ <div class="det-item"><div class="det-lbl">Tempo na empresa</div><div class="det-val">${tempoEmpresa(c.dataAdm)}</div></div>
+ <div class="det-item"><div class="det-lbl">Score Geral</div>
+ <div class="det-val" style="color:${scoreCor(s)};font-size:22px;">${s.toFixed(1)} <span class="badge ${rec.cls}" style="font-size:11px;">${rec.label}</span></div></div>
+ <div class="det-item"><div class="det-lbl">Avaliações realizadas</div><div class="det-val">${c.historico.length}</div></div>
+ </div>
+ <div style="margin-bottom:12px;">
+ <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:8px;">Critérios Detalhados</div>
+ ${CRITERIOS.map(cr=>`
+ <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+ <span style="font-size:11.5px;color:var(--text2);flex:1;min-width:0;">${cr.label}</span>
+ <div class="sc-bar-w" style="flex:1.5;"><div class="sc-bar" style="width:${c.scores[cr.key]*10}%;background:${scoreCor(c.scores[cr.key])};"></div></div>
+ <span style="font-weight:700;font-size:12px;color:${scoreCor(c.scores[cr.key])};min-width:28px;text-align:right;">${c.scores[cr.key].toFixed(1)}</span>
+ </div>`).join('')}
+ </div>
+ ${c.obs?`<div style="background:var(--bg);border-radius:var(--rs);padding:10px 12px;font-size:12px;color:var(--text2);font-style:italic;">"${c.obs}"</div>`:''}`;
+ document.getElementById('mDetPdfBtn').onclick=()=>{exportarPDFUnicoID(id);};
+ document.getElementById('mDetAvalBtn').onclick=()=>{irParaAval(id);};
+ document.getElementById('mDet').classList.add('open');
+}
+
+// ═══════════════════════════════════════════════════════
+// FORM COLABORADOR
+// ═══════════════════════════════════════════════════════
+function abrirFormColab(id){
+ const c=id?colaboradores.find(x=>x.id===id):null;
+ document.getElementById('mFormTitle').textContent=c?' Editar: '+c.nome:' Novo Colaborador';
+ document.getElementById('fId').value=c?c.id:'';
+ document.getElementById('fNome').value=c?c.nome:'';
+ document.getElementById('fCargo').value=c?c.cargo:'';
+ document.getElementById('fTurno').value=c?c.turno:'Manhã';
+ document.getElementById('fAdm').value=c?c.dataAdm:'';
+ document.getElementById('mForm').classList.add('open');
+}
+
+function salvarColab(){
+ const nome=document.getElementById('fNome').value.trim();
+ const cargo=document.getElementById('fCargo').value.trim();
+ const turno=document.getElementById('fTurno').value;
+ const dataAdm=document.getElementById('fAdm').value;
+ if(!nome||!cargo){showToast('Preencha nome e cargo.','err');return;}
+ const id=+document.getElementById('fId').value;
+ if(id){
+ const c=colaboradores.find(x=>x.id===id);
+ if(c){c.nome=nome;c.cargo=cargo;c.turno=turno;c.dataAdm=dataAdm;}
+ showToast(' '+nome.split(' ')[0]+' atualizado!','ok');
+ } else {
+ colaboradores.push({id:nextId++,nome,cargo,turno,dataAdm,
+ cor:colaboradores.length%CORES.length,
+ scores:{metas:5,atitude:5,tecnico:5,equipe:5,pontual:5,higiene:5,cliente:5,aprend:5},
+ historico:[5],obs:'Avaliação inicial pendente.'});
+ showToast(' '+nome.split(' ')[0]+' adicionado!','ok');
+ }
+ closeOverlay('mForm'); salvarStorage(); refreshAll();
+}
+
+// ═══════════════════════════════════════════════════════
+// EXCLUIR
+// ═══════════════════════════════════════════════════════
+function confirmarExclusao(id){
+ const c=colaboradores.find(x=>x.id===id);if(!c)return;
+ abrirConfirm('','Excluir Colaborador',
+ `Tem certeza que deseja excluir <strong>${c.nome}</strong>?<br>Esta ação não pode ser desfeita.`,
+ ()=>{colaboradores=colaboradores.filter(x=>x.id!==id);salvarStorage();refreshAll();showToast(' Removido.','warn');});
+}
+
+function confirmarReset(){
+ abrirConfirm('↺','Resetar Dados',
+ 'Todos os dados serão restaurados para o padrão.<br>Histórico e checklists serão apagados.',
+ ()=>{colaboradores=JSON.parse(JSON.stringify(DADOS_PADRAO));historicoGlobal=[];checkStates={};nextId=100;salvarStorage();refreshAll();showToast('Dados restaurados.','ok');});
+}
+
+function abrirConfirm(ico,title,msg,fn){
+ document.getElementById('mConIco').textContent=ico;
+ document.getElementById('mConTitle').textContent=title;
+ document.getElementById('mConMsg').innerHTML=msg;
+ const btn=document.getElementById('mConOk');
+ const nb=btn.cloneNode(true);btn.parentNode.replaceChild(nb,btn);
+ nb.onclick=()=>{closeOverlay('mConfirm');fn();};
+ document.getElementById('mConfirm').classList.add('open');
+}
+
+// ═══════════════════════════════════════════════════════
+// PDF EXPORT — jsPDF
+// ═══════════════════════════════════════════════════════
+function getPdf(){return new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});}
+
+function pdfHeader(doc,title,sub){
+ doc.setFillColor(13,71,161);
+ doc.rect(0,0,210,28,'F');
+ doc.setFontSize(16);doc.setFont('helvetica','bold');doc.setTextColor(255,255,255);
+ doc.text('Gestão de Colaboradores',14,12);
+ doc.setFontSize(10);doc.setFont('helvetica','normal');doc.setTextColor(200,220,255);
+ doc.text(title,14,19);
+ doc.setFontSize(8);doc.setTextColor(170,200,230);
+ doc.text(sub||new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'}),14,25);
+ return 36;
+}
+
+function pdfFooter(doc){
+ const pages=doc.internal.getNumberOfPages();
+ for(let i=1;i<=pages;i++){
+ doc.setPage(i);
+ doc.setFillColor(240,244,248);
+ doc.rect(0,285,210,12,'F');
+ doc.setFontSize(8);doc.setTextColor(120,144,156);
+ doc.text('Sistema de Gestão de Colaboradores — gerado em '+new Date().toLocaleString('pt-BR'),14,292);
+ doc.text('Pág. '+i+'/'+pages,196,292,{align:'right'});
+ }
+}
+
+function scoreColor(s){
+ if(s>=8.5)return[46,125,50];
+ if(s>=7) return[21,101,192];
+ if(s>=5.5)return[230,81,0];
+ return[198,40,40];
+}
+
+// PDF GERAL
+function exportarPDFGeral(){
+ showToast(' Gerando PDF geral...','ok');
+ setTimeout(()=>{
+ try{
+ const doc=getPdf();
+ let y=pdfHeader(doc,'Relatório Geral de Colaboradores');
+
+ // RESUMO
+ const total=colaboradores.length;
+ const avg=colaboradores.reduce((a,c)=>a+calcScore(c.scores),0)/(total||1);
+ const promover=colaboradores.filter(c=>getRec(calcScore(c.scores)).label==='Promover').length;
+ const risco=colaboradores.filter(c=>getRec(calcScore(c.scores)).label==='Em Risco').length;
+
+ doc.setFontSize(12);doc.setFont('helvetica','bold');doc.setTextColor(26,35,126);
+ doc.text('Resumo Executivo',14,y); y+=7;
+
+ const kpis=[
+ ['Total de Colaboradores',total,''],
+ ['Score Médio da Equipe',avg.toFixed(2),'/ 10.0'],
+ ['Candidatos a Promoção',promover,'colaboradores'],
+ ['Em Situação de Risco',risco,'colaboradores'],
+ ];
+ kpis.forEach(([lbl,val,suf])=>{
+ doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(55,71,79);
+ doc.text(lbl+':',14,y);
+ doc.setFont('helvetica','bold');doc.setTextColor(...scoreColor(typeof val==='number'?val:avg));
+ doc.text(String(val)+' '+suf,80,y);
+ y+=6;
+ });
+ y+=4;
+
+ // TABELA
+ doc.setFontSize(12);doc.setFont('helvetica','bold');doc.setTextColor(26,35,126);
+ doc.text('Tabela Completa de Colaboradores',14,y); y+=5;
+
+ const rows=colaboradores.map(c=>{
+ const s=calcScore(c.scores);
+ const rec=getRec(s);
+ return[c.nome,c.cargo,c.turno,s.toFixed(1),rec.label,c.obs||'—'];
+ });
+
+ doc.autoTable({
+ startY:y,
+ head:[['Nome','Cargo','Turno','Score','Situação','Observações']],
+ body:rows,
+ styles:{fontSize:8,cellPadding:2.5},
+ headStyles:{fillColor:[13,71,161],textColor:255,fontStyle:'bold'},
+ alternateRowStyles:{fillColor:[240,244,248]},
+ columnStyles:{3:{halign:'center'},4:{halign:'center'},5:{cellWidth:45,fontSize:7}},
+ margin:{left:14,right:14},
+ });
+ y=doc.lastAutoTable.finalY+10;
+
+ // AVALIAÇÕES DETALHADAS
+ colaboradores.forEach(c=>{
+ if(y>240){doc.addPage();y=20;}
+ const s=calcScore(c.scores);
+ const rec=getRec(s);
+ const [r,g,b]=scoreColor(s);
+
+ doc.setFillColor(r,g,b);
+ doc.roundedRect(14,y,182,8,2,2,'F');
+ doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(255,255,255);
+ doc.text(c.nome+' — '+c.cargo,18,y+5.5);
+ doc.text('Score: '+s.toFixed(1)+' | '+rec.label,190,y+5.5,{align:'right'});
+ y+=11;
+
+ const crRows=CRITERIOS.map(cr=>[cr.label,c.scores[cr.key].toFixed(1),cr.desc]);
+ doc.autoTable({
+ startY:y,
+ head:[['Critério','Nota','Descrição']],
+ body:crRows,
+ styles:{fontSize:8,cellPadding:2},
+ headStyles:{fillColor:[207,216,220],textColor:[55,71,79],fontStyle:'bold'},
+ columnStyles:{1:{halign:'center',cellWidth:16},2:{fontSize:7,cellWidth:80}},
+ margin:{left:14,right:14},
+ tableLineWidth:0.1,tableLineColor:[200,210,220],
+ });
+ y=doc.lastAutoTable.finalY+4;
+
+ if(c.obs){
+ doc.setFontSize(8);doc.setFont('helvetica','italic');doc.setTextColor(100,120,130);
+ doc.text('Obs: '+c.obs,16,y);
+ y+=6;
+ }
+ y+=4;
+ });
+
+ pdfFooter(doc);
+ doc.save('relatorio-geral-colaboradores.pdf');
+ showToast(' PDF geral gerado!','ok');
+ }catch(e){showToast('Erro ao gerar PDF: '+e.message,'err');console.error(e);}
+ },300);
+}
+
+// PDF INDIVIDUAL (por ID)
+function exportarPDFUnicoID(id){
+ const c=colaboradores.find(x=>x.id===id);
+ if(!c){showToast('Colaborador não encontrado.','err');return;}
+ exportarPDFUnico(c);
+}
+
+// PDF INDIVIDUAL (do select da aba Avaliação)
+function exportarPDFColaborador(){
+ const id=+document.getElementById('avalSel').value;
+ exportarPDFUnicoID(id);
+}
+
+function exportarPDFUnico(c){
+ showToast(' Gerando PDF de '+c.nome.split(' ')[0]+'...','ok');
+ setTimeout(()=>{
+ try{
+ const doc=getPdf();
+ const s=calcScore(c.scores);
+ const rec=getRec(s);
+ const [r,g,b]=scoreColor(s);
+ let y=pdfHeader(doc,'Relatório Individual — '+c.nome,'Avaliação de Performance');
+
+ // DADOS PESSOAIS
+ doc.setFontSize(11);doc.setFont('helvetica','bold');doc.setTextColor(26,35,126);
+ doc.text('Dados do Colaborador',14,y);y+=6;
+
+ doc.autoTable({
+ startY:y,
+ body:[
+ ['Nome',c.nome,'Cargo',c.cargo],
+ ['Turno',c.turno,'Admissão',fmt(c.dataAdm)],
+ ['Tempo na empresa',tempoEmpresa(c.dataAdm),'Avaliações realizadas',c.historico.length],
+ ],
+ styles:{fontSize:9,cellPadding:2.5},
+ columnStyles:{0:{fontStyle:'bold',fillColor:[240,244,248],cellWidth:35},2:{fontStyle:'bold',fillColor:[240,244,248],cellWidth:35}},
+ margin:{left:14,right:14},
+ });
+ y=doc.lastAutoTable.finalY+8;
+
+ // SCORE
+ doc.setFillColor(r,g,b);
+ doc.roundedRect(14,y,182,22,3,3,'F');
+ doc.setFontSize(28);doc.setFont('helvetica','bold');doc.setTextColor(255,255,255);
+ doc.text(s.toFixed(1),105,y+14,{align:'center'});
+ doc.setFontSize(10);
+ doc.text('SCORE GERAL — '+rec.label,105,y+20,{align:'center'});
+ y+=30;
+
+ // CRITERIOS
+ doc.setFontSize(11);doc.setFont('helvetica','bold');doc.setTextColor(26,35,126);
+ doc.text('Avaliação por Critério',14,y);y+=5;
+
+ doc.autoTable({
+ startY:y,
+ head:[['Critério','Nota','Avaliação','Descrição']],
+ body:CRITERIOS.map(cr=>{
+ const v=c.scores[cr.key];
+ const nivel=v>=8.5?'Excelente':v>=7?'Bom':v>=5.5?'Regular':v>=4?'Fraco':'Crítico';
+ return[cr.label,v.toFixed(1),nivel,cr.desc];
+ }),
+ styles:{fontSize:8.5,cellPadding:2.5},
+ headStyles:{fillColor:[13,71,161],textColor:255},
+ columnStyles:{1:{halign:'center',cellWidth:14},2:{halign:'center',cellWidth:20},3:{fontSize:7.5}},
+ alternateRowStyles:{fillColor:[245,248,255]},
+ margin:{left:14,right:14},
+ });
+ y=doc.lastAutoTable.finalY+8;
+
+ // HISTÓRICO
+ if(c.historico.length>1){
+ doc.setFontSize(11);doc.setFont('helvetica','bold');doc.setTextColor(26,35,126);
+ doc.text('Evolução de Score',14,y);y+=5;
+ doc.autoTable({
+ startY:y,
+ head:[['#','Score']],
+ body:c.historico.map((s,i)=>['Avaliação '+(i+1),s.toFixed(2)]),
+ styles:{fontSize:8.5},headStyles:{fillColor:[13,71,161],textColor:255},
+ margin:{left:14,right:14},tableWidth:60,
+ });
+ y=doc.lastAutoTable.finalY+8;
+ }
+
+ // RECOMENDAÇÕES
+ const acaoMap={
+ Promover:['Agendar 1-on-1 para plano de carreira','Trilha de progressão para coordenador/líder','Incluir em programa de mentoria','Avaliar aumento ou bônus'],
+ Manter:['Manter feedback mensal estruturado','PDI para critérios abaixo de 7.5','≥1 treinamento por trimestre','Checar satisfação com cargo e ambiente'],
+ Treinar:['Elaborar PDI em 7 dias','Acompanhamento quinzenal','Meta: score 7.0 em 60 dias','Verificar causa raiz da baixa performance'],
+ 'Em Risco':['Reunião urgente com gestor e RH em 48h','Plano de Melhoria de Performance — 30 dias','Documentar ocorrências (proteção CLT)','Iniciar processo de desligamento se sem evolução'],
+ };
+
+ if(y>230){doc.addPage();y=20;}
+ doc.setFontSize(11);doc.setFont('helvetica','bold');doc.setTextColor(26,35,126);
+ doc.text('Ações Recomendadas — '+rec.label,14,y);y+=5;
+ const acs=acaoMap[rec.label]||[];
+ doc.autoTable({
+ startY:y,
+ body:acs.map((a,i)=>[String(i+1),a]),
+ styles:{fontSize:9},
+ columnStyles:{0:{cellWidth:8,halign:'center',fontStyle:'bold'}},
+ margin:{left:14,right:14},
+ headStyles:{fillColor:[r,g,b],textColor:255},
+ });
+ y=doc.lastAutoTable.finalY+8;
+
+ if(c.obs){
+ doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(26,35,126);
+ doc.text('Observações do Gestor',14,y);y+=5;
+ doc.setFont('helvetica','italic');doc.setTextColor(55,71,79);doc.setFontSize(9);
+ const lines=doc.splitTextToSize(c.obs,180);
+ doc.text(lines,16,y);
+ }
+
+ pdfFooter(doc);
+ doc.save('avaliacao-'+c.nome.replace(/\s+/g,'-').toLowerCase()+'.pdf');
+ showToast(' PDF de '+c.nome.split(' ')[0]+' gerado!','ok');
+ }catch(e){showToast('Erro: '+e.message,'err');console.error(e);}
+ },300);
+}
+
+// PDF CHECKLIST
+function exportarPDFChecklist(){
+ showToast(' Gerando PDF de checklists...','ok');
+ setTimeout(()=>{
+ try{
+ const doc=getPdf();
+ let y=pdfHeader(doc,'Checklists por Cargo');
+ Object.entries(CHECKLISTS).forEach(([cargo,items])=>{
+ if(y>240){doc.addPage();y=20;}
+ const ck=checkStates[cargo]||{};
+ const done=items.filter((_,i)=>ck[i]).length;
+ const pct=Math.round(done/items.length*100);
+ doc.setFontSize(11);doc.setFont('helvetica','bold');doc.setTextColor(13,71,161);
+ doc.text(' '+cargo+' ('+done+'/'+items.length+' — '+pct+'%)',14,y);y+=5;
+ doc.autoTable({
+ startY:y,
+ head:[['','Item do Checklist','Status']],
+ body:items.map((item,i)=>['',item,ck[i]?' Concluído':'⬜ Pendente']),
+ styles:{fontSize:8,cellPadding:2},
+ headStyles:{fillColor:[13,71,161],textColor:255},
+ columnStyles:{0:{cellWidth:6,halign:'center'},2:{cellWidth:22,halign:'center'}},
+ alternateRowStyles:{fillColor:[240,244,248]},
+ margin:{left:14,right:14},
+ });
+ y=doc.lastAutoTable.finalY+10;
+ });
+ pdfFooter(doc);
+ doc.save('checklists-por-cargo.pdf');
+ showToast(' PDF de checklists gerado!','ok');
+ }catch(e){showToast('Erro: '+e.message,'err');}
+ },300);
+}
+
+// PDF MATRIZ
+function exportarPDFMatriz(){
+ showToast(' Gerando PDF da matriz...','ok');
+ setTimeout(()=>{
+ try{
+ const doc=getPdf();
+ let y=pdfHeader(doc,'Matriz 9-Box — Performance × Potencial');
+ const rows=[];
+ POTS.forEach(pot=>{
+ PERFS.forEach(perf=>{
+ const cell=CELLS.find(c=>c.perf===perf&&c.pot===pot);
+ const emps=colaboradores.filter(c=>perfTier(calcScore(c.scores))===perf&&potencial(c.historico)===pot);
+ if(emps.length)rows.push([cell.title,pot.charAt(0).toUpperCase()+pot.slice(1),perf.charAt(0).toUpperCase()+perf.slice(1),
+ emps.map(c=>c.nome+' ('+calcScore(c.scores).toFixed(1)+')').join(', ')]);
+ });
+ });
+ doc.autoTable({startY:y,
+ head:[['Quadrante','Potencial','Performance','Colaboradores']],
+ body:rows,
+ styles:{fontSize:8.5,cellPadding:2.5},
+ headStyles:{fillColor:[13,71,161],textColor:255},
+ alternateRowStyles:{fillColor:[240,244,248]},
+ margin:{left:14,right:14},
+ });
+ pdfFooter(doc);
+ doc.save('matriz-9box.pdf');
+ showToast(' PDF da matriz gerado!','ok');
+ }catch(e){showToast('Erro: '+e.message,'err');}
+ },300);
+}
+
+// PDF RECOMENDAÇÕES
+function exportarPDFRecomendacoes(){
+ showToast(' Gerando PDF de recomendações...','ok');
+ setTimeout(()=>{
+ try{
+ const doc=getPdf();
+ let y=pdfHeader(doc,'Recomendações por Colaborador');
+ const groups={Promover:[],Manter:[],Treinar:[],'Em Risco':[]};
+ colaboradores.forEach(c=>{groups[getRec(calcScore(c.scores)).label].push(c);});
+ Object.entries(groups).forEach(([grp,list])=>{
+ if(!list.length)return;
+ if(y>250){doc.addPage();y=20;}
+ const colors={Promover:[46,125,50],Manter:[13,71,161],Treinar:[230,81,0],'Em Risco':[198,40,40]};
+ const [r,g,b]=colors[grp];
+ doc.setFillColor(r,g,b);
+ doc.rect(14,y,182,7,'F');
+ doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(255,255,255);
+ doc.text(grp+' ('+list.length+' colaboradores)',18,y+5);y+=10;
+ doc.autoTable({
+ startY:y,
+ head:[['Colaborador','Cargo','Score','Destaque','Foco']],
+ body:list.map(c=>{
+ const s=calcScore(c.scores);
+ const st=CRITERIOS.slice().sort((a,bb)=>c.scores[bb.key]-c.scores[a.key])[0];
+ const wk=CRITERIOS.slice().sort((a,bb)=>c.scores[a.key]-c.scores[bb.key])[0];
+ return[c.nome,c.cargo,s.toFixed(1),st.label+' ('+c.scores[st.key].toFixed(1)+')',wk.label+' ('+c.scores[wk.key].toFixed(1)+')'];
+ }),
+ styles:{fontSize:8,cellPadding:2.5},
+ headStyles:{fillColor:[207,216,220],textColor:[55,71,79]},
+ columnStyles:{2:{halign:'center',cellWidth:14}},
+ margin:{left:14,right:14},
+ });
+ y=doc.lastAutoTable.finalY+10;
+ });
+ pdfFooter(doc);
+ doc.save('recomendacoes-colaboradores.pdf');
+ showToast(' PDF de recomendações gerado!','ok');
+ }catch(e){showToast('Erro: '+e.message,'err');}
+ },300);
+}
+
+// PDF HISTÓRICO
+function exportarPDFHistorico(){
+ showToast(' Gerando PDF do histórico...','ok');
+ setTimeout(()=>{
+ try{
+ const doc=getPdf();
+ let y=pdfHeader(doc,'Histórico de Avaliações');
+ if(!historicoGlobal.length){
+ doc.setFontSize(11);doc.setTextColor(100,100,100);
+ doc.text('Nenhuma avaliação registrada.',14,y);
+ } else {
+ doc.autoTable({
+ startY:y,
+ head:[['Colaborador','Cargo','Score','Situação','Data','Observações']],
+ body:historicoGlobal.map(h=>[h.nome,h.cargo,h.score.toFixed(1),getRec(h.score).label,h.data,h.obs||'—']),
+ styles:{fontSize:8,cellPadding:2.5},
+ headStyles:{fillColor:[13,71,161],textColor:255},
+ alternateRowStyles:{fillColor:[240,244,248]},
+ columnStyles:{2:{halign:'center',cellWidth:14},3:{halign:'center',cellWidth:18},5:{fontSize:7,cellWidth:45}},
+ margin:{left:14,right:14},
+ });
+ }
+ pdfFooter(doc);
+ doc.save('historico-avaliacoes.pdf');
+ showToast(' PDF do histórico gerado!','ok');
+ }catch(e){showToast('Erro: '+e.message,'err');}
+ },300);
+}
+
+// ═══════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════
+function showToast(msg, type='ok'){
+ const t=document.getElementById('toast');
+ const d=document.createElement('div');
+ d.className='toast-msg '+type;d.textContent=msg;
+ t.appendChild(d);
+ setTimeout(()=>{d.style.opacity='0';d.style.transform='translateX(60px)';d.style.transition='all .3s';
+ setTimeout(()=>d.remove(),300);},3000);
+}
+
+// ═══════════════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════════════
+function switchTab(tabId, btn){
+ document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+ document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+ document.getElementById('tab-'+tabId).classList.add('active');
+ if(btn)btn.classList.add('active');
+ if(tabId==='dashboard')buildCharts();
+ if(tabId==='checklists')renderChecklist();
+}
+
+function closeOverlay(id){document.getElementById(id).classList.remove('open');}
+
+// ═══════════════════════════════════════════════════════
+// REFRESH ALL
+// ═══════════════════════════════════════════════════════
+function refreshAll(){
+ renderKPIs();
+ renderTopBot();
+ renderTable(colaboradores);
+ popularFiltros();
+ popularEvalSel();
+ renderMatriz();
+ renderRec();
+ renderHistorico();
+ buildCharts();
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',()=>{
+ initHeader();
+ const loaded=carregarStorage();
+ if(!loaded){colaboradores=JSON.parse(JSON.stringify(DADOS_PADRAO));salvarStorage();}
+ refreshAll();
+ document.querySelectorAll('.overlay').forEach(o=>{
+ o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');});
+ });
+ document.addEventListener('keydown',e=>{
+ if(e.key==='Escape')document.querySelectorAll('.overlay.open').forEach(o=>o.classList.remove('open'));
+ });
+});
+</script>
+</body>
+</html>
