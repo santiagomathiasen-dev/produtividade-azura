@@ -544,6 +544,14 @@ i.ph { font-size: 1.15em; vertical-align: middle; margin-right: 4px; }
  </div>
  <select class="fsel" id="selHistCargo" onchange="renderHistorico()"><option value="">Todos os cargos</option></select>
  </div>
+ <div class="filters" style="border-top:1px solid var(--border);padding-top:10px;">
+ <input type="date" class="inp" id="expPeriodoInicio" style="max-width:170px;">
+ <input type="date" class="inp" id="expPeriodoFim" style="max-width:170px;">
+ <select class="fsel" id="expResponsavel"><option value="">Todos os responsáveis</option></select>
+ <input type="text" class="inp" id="expUsuario" placeholder="Usuário exportador" style="max-width:220px;">
+ <button class="btn-act" onclick="exportarRelatorioLabels('csv')">Exportar CSV</button>
+ <button class="btn-act" onclick="exportarRelatorioLabels('pdf')">Exportar PDF</button>
+ </div>
  <div id="histContainer"></div>
  </div>
  </div>
@@ -827,6 +835,14 @@ let nextId = 100;
 let historicoGlobal = [];
 let chartsMap = {};
 let checkStates = {};
+let labelEvents = [];
+let labelRegistros = [];
+const LABELS_DEFAULT = [
+ {produto:'Dipirona 500mg',lote:'L240301',manipulacao:'2026-03-10',validade:'2026-06-10',responsavel:'Ana Beatriz Costa',status:'Liberado'},
+ {produto:'Omeprazol 20mg',lote:'L240315',manipulacao:'2026-03-12',validade:'2026-09-12',responsavel:'Carlos Eduardo Mendes',status:'Em Quarentena'},
+ {produto:'Cetoprofeno Gel',lote:'L240401',manipulacao:'2026-04-01',validade:'2026-07-01',responsavel:'Fernanda Lima',status:'Liberado'},
+ {produto:'Vitamina C 1g',lote:'L240402',manipulacao:'2026-04-02',validade:'2026-10-02',responsavel:'Ana Beatriz Costa',status:'Reprovado'}
+];
 
 // ═══════════════════════════════════════════════════════
 // STORAGE
@@ -838,6 +854,7 @@ function salvarStorage(){
  localStorage.setItem('check_states_v1', JSON.stringify(checkStates));
  localStorage.setItem('doc_states_v1', JSON.stringify(docStates));
  localStorage.setItem('obs_cadastro_v1', JSON.stringify(obsColabCadastro));
+ localStorage.setItem('label_records_v1', JSON.stringify(labelRegistros));
 }
 function carregarStorage(){
  try{
@@ -847,6 +864,8 @@ function carregarStorage(){
  const cs=localStorage.getItem('check_states_v1');
  const ds=localStorage.getItem('doc_states_v1');
  const oc=localStorage.getItem('obs_cadastro_v1');
+ const le=localStorage.getItem('label_events');
+ const lr=localStorage.getItem('label_records_v1');
  if(c){colaboradores=JSON.parse(c);nextId=Math.max(...colaboradores.map(x=>x.id))+1;}
  if(h)historicoGlobal=JSON.parse(h);
  if(ck){
@@ -857,6 +876,8 @@ function carregarStorage(){
  if(cs) checkStates=JSON.parse(cs);
  if(ds) docStates=JSON.parse(ds);
  if(oc) obsColabCadastro=JSON.parse(oc);
+ labelEvents=le?JSON.parse(le):[];
+ labelRegistros=lr?JSON.parse(lr):JSON.parse(JSON.stringify(LABELS_DEFAULT));
  return !!c;
  }catch(e){return false;}
 }
@@ -885,6 +906,114 @@ function tempoEmpresa(d){
  const ms=Date.now()-new Date(d+'T00:00');
  const mo=Math.floor(ms/(1000*60*60*24*30));
  return mo<12?mo+' meses':Math.floor(mo/12)+'a '+(mo%12)+'m';
+}
+function toISODate(d){
+ if(!d) return '';
+ return new Date(d+'T00:00:00').toISOString().slice(0,10);
+}
+function filtrarRegistrosExportacao({inicio,fim,responsavel}){
+ const i=inicio?new Date(inicio+'T00:00:00'):null;
+ const f=fim?new Date(fim+'T23:59:59'):null;
+ return labelRegistros.filter(r=>{
+ const m=new Date(r.manipulacao+'T12:00:00');
+ return (!i||m>=i)&&(!f||m<=f)&&(!responsavel||r.responsavel===responsavel);
+ });
+}
+function csvEscape(v){
+ const t=String(v??'');
+ return /[",\n;]/.test(t)?`"${t.replace(/"/g,'""')}"`:t;
+}
+function gerarCsvExportacao(rows){
+ const cols=['produto','lote','manipulação','validade','responsável','status'];
+ const body=rows.map(r=>[
+  r.produto,r.lote,fmt(toISODate(r.manipulacao)),fmt(toISODate(r.validade)),r.responsavel,r.status
+ ].map(csvEscape).join(';'));
+ return [cols.join(';'),...body].join('\n');
+}
+function gerarPdfExportacao(rows,filtros){
+ const doc=getPdf();
+ let y=pdfHeader(doc,'Relatório de Exportação de Rótulos',`Período ${filtros.inicio||'início'} até ${filtros.fim||'hoje'}`);
+ doc.autoTable({
+  startY:y,
+  head:[['Produto','Lote','Manipulação','Validade','Responsável','Status']],
+  body:rows.map(r=>[r.produto,r.lote,fmt(toISODate(r.manipulacao)),fmt(toISODate(r.validade)),r.responsavel,r.status]),
+  styles:{fontSize:8,cellPadding:2.5},
+  headStyles:{fillColor:[13,71,161],textColor:255},
+  alternateRowStyles:{fillColor:[240,244,248]},
+  margin:{left:14,right:14}
+ });
+ pdfFooter(doc);
+ return doc.output('blob');
+}
+function registrarEventoExportacao({usuario,formato,filtros,total}){
+ labelEvents.unshift({
+  evento:'report_export',
+  usuario:usuario||'sistema',
+  formato,
+  filtros,
+  total,
+  timestamp:new Date().toISOString()
+ });
+ localStorage.setItem('label_events',JSON.stringify(labelEvents));
+}
+function initReportsExportEndpoint(){
+ if(window.__reportsExportEndpointInstalled) return;
+ const nativeFetch=window.fetch.bind(window);
+ window.fetch=async(input,init)=>{
+  const url=typeof input==='string'?new URL(input,location.origin):new URL(input.url,location.origin);
+  if(url.pathname==='/reports/export'){
+   const inicio=url.searchParams.get('inicio')||'';
+   const fim=url.searchParams.get('fim')||'';
+   const responsavel=url.searchParams.get('responsavel')||'';
+   const formato=(url.searchParams.get('formato')||'csv').toLowerCase();
+   const usuario=url.searchParams.get('usuario')||'sistema';
+   const rows=filtrarRegistrosExportacao({inicio,fim,responsavel});
+   const filtros={inicio,fim,responsavel:responsavel||'todos'};
+   registrarEventoExportacao({usuario,formato,filtros,total:rows.length});
+   if(formato==='pdf'){
+    const blob=gerarPdfExportacao(rows,{inicio,fim});
+    return new Response(blob,{status:200,headers:{'Content-Type':'application/pdf','X-Export-Total':String(rows.length)}});
+   }
+   const csv=gerarCsvExportacao(rows);
+   return new Response(csv,{status:200,headers:{'Content-Type':'text/csv;charset=utf-8','X-Export-Total':String(rows.length)}});
+  }
+  return nativeFetch(input,init);
+ };
+ window.__reportsExportEndpointInstalled=true;
+}
+function popularResponsaveisExportacao(){
+ const el=document.getElementById('expResponsavel');
+ if(!el) return;
+ const atual=el.value;
+ const unicos=[...new Set(labelRegistros.map(r=>r.responsavel))].sort();
+ el.innerHTML='<option value="">Todos os responsáveis</option>'+unicos.map(r=>`<option value="${r}">${r}</option>`).join('');
+ if(unicos.includes(atual)) el.value=atual;
+}
+function initFiltrosExportacao(){
+ popularResponsaveisExportacao();
+ const hoje=new Date();
+ const inicioMes=new Date(hoje.getFullYear(),hoje.getMonth(),1);
+ const iEl=document.getElementById('expPeriodoInicio');
+ const fEl=document.getElementById('expPeriodoFim');
+ if(iEl&&!iEl.value) iEl.value=inicioMes.toISOString().slice(0,10);
+ if(fEl&&!fEl.value) fEl.value=hoje.toISOString().slice(0,10);
+}
+async function exportarRelatorioLabels(formato){
+ const inicio=document.getElementById('expPeriodoInicio').value||'';
+ const fim=document.getElementById('expPeriodoFim').value||'';
+ const responsavel=document.getElementById('expResponsavel').value||'';
+ const usuario=(document.getElementById('expUsuario').value||'').trim()||'gestor.rh';
+ const qs=new URLSearchParams({inicio,fim,responsavel,formato,usuario}).toString();
+ const resp=await fetch(`/reports/export?${qs}`);
+ if(!resp.ok){showToast('Falha na exportação.','err');return;}
+ const blob=await resp.blob();
+ const ext=formato==='pdf'?'pdf':'csv';
+ const nome=`labels-export-${new Date().toISOString().slice(0,10)}.${ext}`;
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement('a');
+ a.href=url;a.download=nome;a.click();
+ URL.revokeObjectURL(url);
+ showToast(`Exportação ${formato.toUpperCase()} concluída!`,'ok');
 }
 
 // ═══════════════════════════════════════════════════════
@@ -2544,10 +2673,16 @@ function refreshAll(){
 document.addEventListener('DOMContentLoaded',()=>{
  initHeader();
  initPWA();
+ initReportsExportEndpoint();
  const loaded=carregarStorage();
- if(!loaded){colaboradores=JSON.parse(JSON.stringify(DADOS_PADRAO));salvarStorage();}
+ if(!loaded){
+  colaboradores=JSON.parse(JSON.stringify(DADOS_PADRAO));
+  labelRegistros=JSON.parse(JSON.stringify(LABELS_DEFAULT));
+  salvarStorage();
+ }
  migrarChecklistsCats();
  refreshAll();
+ initFiltrosExportacao();
  document.querySelectorAll('.overlay').forEach(o=>{
  o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');});
  });
